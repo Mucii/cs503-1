@@ -13,5 +13,6 @@ struct ts_ent {
 extern struct ts_ent tstab[];
 
 /* LAB2BTODO: Add more definitions here if necessary */
+#define NUMLEVELS 60
 
 #endif  // __TS_INIT_H_

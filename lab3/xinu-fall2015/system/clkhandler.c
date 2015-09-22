@@ -14,7 +14,6 @@ void	clkhandler()
 	static	uint32	count1000 = 1000;	/* Count to 1000 ms	*/
 
 	/* Decrement the ms counter, and see if a second has passed */
-
 	if((--count1000) <= 0) {
 
 		/* One second has passed, so increment seconds count */
@@ -24,6 +23,14 @@ void	clkhandler()
 		count1000 = 1000;
 	}
 
+	/* AYUSH EDIT Lab2b */
+	/* Uodate the CPU usage time for the current process by 1 ms*/
+	if(!isbadpid(currpid)) {
+		struct procent *ptr = &proctab[currpid];
+		ptr->prcputime++;
+	}
+	ctr1000++;
+	
 	/* Handle sleeping processes if any exist */
 
 	if(!isempty(sleepq)) {

@@ -23,7 +23,9 @@ struct	sentry	semtab[NSEM];	/* Semaphore table			*/
 struct	memblk	memlist;	/* List of free memory blocks		*/
 
 /* LAB2BTODO: Add necessary declarations here */
-
+/* AYUSH EDIT Lab2b */
+struct ts_ent tstab[NUMLEVELS];
+extern qid16 multiqueue[];	/* indexes of multi levels queue	*/
 
 /* Active system status */
 
@@ -96,6 +98,78 @@ void	nulluser()
 }
 
 
+static void tsinit() {
+	
+	int i = 0;
+	struct ts_ent *tsptr;
+
+	for(; i < 10; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = 0;
+		tsptr->ts_slpret = 50;
+		tsptr->ts_quantum = 200;
+	}
+		for(; i < 20; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = i - 10;
+		tsptr->ts_slpret = 51;
+		tsptr->ts_quantum = 160;
+	}
+	
+	for(; i < 30; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = i - 10;
+		tsptr->ts_slpret = 52;
+		tsptr->ts_quantum = 120;
+	}
+
+	for(; i < 35; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = i - 10;
+		tsptr->ts_slpret = 53;
+		tsptr->ts_quantum = 80;
+	}
+	
+	for(; i < 40; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = i - 10;
+		tsptr->ts_slpret = 54;
+		tsptr->ts_quantum = 80;
+	}
+
+	for(; i < 45; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = i - 10;
+		tsptr->ts_slpret = 55;
+		tsptr->ts_quantum = 40;
+	}
+
+	tsptr = &tstab[i];
+	tsptr->ts_tqexp = i - 10;
+	tsptr->ts_slpret = 56;
+	tsptr->ts_quantum = 40;
+	i++;
+
+	tsptr = &tstab[i];
+	tsptr->ts_tqexp = i - 10;
+	tsptr->ts_slpret = 57;
+	tsptr->ts_quantum = 40;
+	i++;
+	
+	for(; i < 59; i++) {
+		tsptr = &tstab[i];
+		tsptr->ts_tqexp = i - 10;
+		tsptr->ts_slpret = 58;
+		tsptr->ts_quantum = 40;
+	}
+	
+	tsptr = &tstab[i];
+	tsptr->ts_tqexp = i - 10;
+	tsptr->ts_slpret = 59;
+	tsptr->ts_quantum = 20;
+
+}
+
 /*------------------------------------------------------------------------
  *
  * sysinit  -  Initialize all Xinu data structures and devices
@@ -140,6 +214,7 @@ static	void	sysinit()
 		prptr->prname[0] = NULLCH;
 		prptr->prstkbase = NULL;
 		prptr->prprio = 0;
+		prptr->prcputime = 0;
 	}
 
 	/* Initialize the Null process entry */
@@ -166,12 +241,18 @@ static	void	sysinit()
 
 	bufinit();
 
+	/*  AYUSH EDIT lab2b */
+	/* Intialize TS data structure*/
+	tsinit();
+	// for(i = 0; i < NUMLEVELS; i++) multiqueue[i] = newqueue();
+
 	/* Create a ready list for processes */
 
 	readylist = newqueue();
 
-	/* Initialize the real time clock */
 
+	/* Initialize the real time clock */
+	
 	clkinit();
 
 	for (i = 0; i < NDEVS; i++) {

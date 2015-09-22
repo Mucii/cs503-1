@@ -3,7 +3,7 @@
 #include <xinu.h>
 
 qid16	readylist;			/* Index of ready list		*/
-
+qid16	multiqueue[NUMLEVELS];		/* indexes of multi-level queue */ 
 /*------------------------------------------------------------------------
  *  ready  -  Make a process eligible for CPU service
  *------------------------------------------------------------------------

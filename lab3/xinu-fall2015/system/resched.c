@@ -26,23 +26,71 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 	ptold = &proctab[currpid];
 
-	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
+	/*if (ptold->prstate == PR_CURR) {  
 		if (ptold->prprio > firstkey(readylist)) {
 			return;
 		}
 
-		/* Old process will no longer remain current */
-
 		ptold->prstate = PR_READY;
 		insert(currpid, readylist, ptold->prprio);
+	}*/
+
+
+	/* AYUSH EDIT lab2b */
+	
+	/* TS scheduler policy
+	 * 1. check ptold.prstate
+	 * 2. update the priority according to the TS dispatcher based on desired process state
+	 * 3. if current process still has highest priority resume with new quantum
+	 * 4. insert into the readlist with updated priority
+	 * 5. pick highest prioirty process from the readylist
+	 * */
+
+	kprintf("\nCLK %d Process [%s] \tPrio: %d \tcputime: %d\n", ctr1000, ptold->prname, ptold->prprio, ptold->prcputime);
+	uint32 oldprio = ptold->prprio;
+
+	if(ptold->prstate == PR_CURR) {
+
+		// update priority
+		ptold->prprio = tstab[oldprio].ts_tqexp;
+		
+		// if current process has highest priority resume with new quantum
+		if(ptold->prprio > firstkey(readylist)) {
+			preempt = tstab[ptold->prprio].ts_quantum;
+			return;
+		}
+
+		// push into readlist
+		ptold->prstate = PR_READY;
+		insert(currpid, readylist, ptold->prprio);
+
+	} else if(ptold->prstate == PR_SLEEP) {
+		
+		// update priority
+		ptold->prprio = tstab[oldprio].ts_slpret;
+	
 	}
+
 
 	/* Force context switch to highest priority ready process */
 
 	currpid = dequeue(readylist);
+
+	/* Apply check for nullprocess being dequeued and readlist is not empty
+	 * if yes insert back the null process into the readylist at the tail */
+	if(currpid == NULLPROC && !isempty(readylist) ) {
+		insert(currpid, readylist, NULLPROC);
+		currpid = dequeue(readylist);
+	}
+
+
 	ptnew = &proctab[currpid];
 	ptnew->prstate = PR_CURR;
-  preempt = QUANTUM;		/* Reset time slice for process	*/
+  	
+	/* AYUSH EDIT lab2b */
+	preempt = tstab[ptnew->prprio].ts_quantum;		/* Reset time slice for process	*/
+	
+	// kprintf("\nProcess [%s] \tPrio: %d \tcputime: %d ", ptold->prname, ptold->prprio, ptold->prcputime);
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */
