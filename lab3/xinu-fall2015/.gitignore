@@ -7,6 +7,9 @@
 *.obj
 *.elf
 
+#.nfs files
+.nfs*
+
 # xinu
 *.xbin
 *.bin
