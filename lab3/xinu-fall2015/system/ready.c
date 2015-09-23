@@ -3,7 +3,12 @@
 #include <xinu.h>
 
 qid16	readylist;			/* Index of ready list		*/
-qid16	multiqueue[NUMLEVELS];		/* indexes of multi-level queue */ 
+
+
+/* AYUSH EDIT */
+qid16	ioreadylist;			/* Index of io-bound ready lisy */
+qid16	cpureadylist;			/* Index of cpu-ready list	*/
+
 /*------------------------------------------------------------------------
  *  ready  -  Make a process eligible for CPU service
  *------------------------------------------------------------------------
@@ -22,7 +27,15 @@ status	ready(
 
 	prptr = &proctab[pid];
 	prptr->prstate = PR_READY;
-	insert(pid, readylist, prptr->prprio);
+	//insert(pid, readylist, prptr->prprio);
+	
+	if(prptr->prprio < 50) {
+		insert(pid, cpureadylist, prptr->prprio);
+		// kprintf("READY: Inserted into cpureadylist\n");
+	} else { 
+		// kprintf("READY: Inserted into ioreadylist\n");
+		insert(pid, ioreadylist, prptr->prprio);
+	}
 	resched();
 
 	return OK;

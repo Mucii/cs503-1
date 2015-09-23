@@ -25,7 +25,6 @@ struct	memblk	memlist;	/* List of free memory blocks		*/
 /* LAB2BTODO: Add necessary declarations here */
 /* AYUSH EDIT Lab2b */
 struct ts_ent tstab[NUMLEVELS];
-extern qid16 multiqueue[];	/* indexes of multi levels queue	*/
 
 /* Active system status */
 
@@ -244,12 +243,14 @@ static	void	sysinit()
 	/*  AYUSH EDIT lab2b */
 	/* Intialize TS data structure*/
 	tsinit();
-	// for(i = 0; i < NUMLEVELS; i++) multiqueue[i] = newqueue();
 
 	/* Create a ready list for processes */
 
 	readylist = newqueue();
-
+	ioreadylist = newqueue();
+	cpureadylist = newqueue();
+	if(ioreadylist == SYSERR || cpureadylist == SYSERR)
+	kprintf("\nSYSERR....");
 
 	/* Initialize the real time clock */
 	

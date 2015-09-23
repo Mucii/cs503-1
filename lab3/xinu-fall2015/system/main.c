@@ -4,35 +4,65 @@
 #include <stdio.h>
 #include <lab2b.h>
 
-process	main(void)
-{
-  	/* Lab2BTODO */
-  	kprintf("===== Lab2B =====\n");
-  	
-	/*
-	kprintf("\nDispatcher Table:\n");
-	int i = 0;
-	for(; i < NUMLEVELS; i++) kprintf("\n#%d\t%d\t%d\t%d", i, tstab[i].ts_quantum, tstab[i].ts_tqexp, tstab[i].ts_slpret);
-	
-	*/
+void test_allcpu() {
+
 	resume( create(cpuintensive, 2048, 20, "CPUProc1", 0, NULL));
 	resume( create(cpuintensive, 2048, 20, "CPUProc2", 0, NULL));
 	resume( create(cpuintensive, 2048, 20, "CPUProc3", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc4", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc5", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc6", 0, NULL));
+}
 
-
+void test_allio() {
 	uint32 sleeptime = 20;
 	resume( create(iointensive, 2048, 20, "IOProc1", 1, sleeptime));
 	resume( create(iointensive, 2048, 20, "IOProc2", 1, sleeptime));
 	resume( create(iointensive, 2048, 20, "IOProc3", 1, sleeptime));
+	resume( create(iointensive, 2048, 20, "IOProc4", 1, sleeptime));
+	resume( create(iointensive, 2048, 20, "IOProc5", 1, sleeptime));
+	resume( create(iointensive, 2048, 20, "IOProc6", 1, sleeptime));
+}
 
+
+void test_half1() {
+
+	resume( create(cpuintensive, 2048, 20, "CPUProc1", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc2", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc3", 0, NULL));
+	
+	uint32 sleeptime = 10;
+	resume( create(iointensive, 2048, 20, "IOProc1", 1, sleeptime));
+	resume( create(iointensive, 2048, 20, "IOProc2", 1, sleeptime));
+	resume( create(iointensive, 2048, 20, "IOProc3", 1, sleeptime));
+
+} 
+
+void test_half2() {
+
+}
+
+void test_starvation() {
+
+}
+
+process	main(void)
+{
+  	/* Lab2BTODO */
+  	kprintf("===== Lab2B =====\n");
+	
+	
 	kprintf("===== Lab2B - Problem 3.1 =====\n");
   	// All CPU intensive
+	// test_allcpu();
 
   	kprintf("===== Lab2B - Problem 3.2 =====\n");
   	// All IO intensive
+	// test_allio();
 
   	kprintf("===== Lab2B - Problem 3.3 =====\n");
   	// Half CPU-, half IO- intensive, v1
+	test_half1();
 
   	kprintf("===== Lab2B - Problem 3.4 =====\n");
   	// Half CPU-, half IO- intensive, 

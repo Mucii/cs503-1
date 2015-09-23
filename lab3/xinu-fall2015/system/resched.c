@@ -26,16 +26,6 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 	ptold = &proctab[currpid];
 
-	/*if (ptold->prstate == PR_CURR) {  
-		if (ptold->prprio > firstkey(readylist)) {
-			return;
-		}
-
-		ptold->prstate = PR_READY;
-		insert(currpid, readylist, ptold->prprio);
-	}*/
-
-
 	/* AYUSH EDIT lab2b */
 	
 	/* TS scheduler policy
@@ -46,7 +36,8 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	 * 5. pick highest prioirty process from the readylist
 	 * */
 
-	kprintf("\nCLK %d Process [%s] \tPrio: %d \tcputime: %d\n", ctr1000, ptold->prname, ptold->prprio, ptold->prcputime);
+	// kprintf("\nCLK %d Process [%s] \tPrio: %d \tcputime: %d\n", ctr1000, ptold->prname, ptold->prprio, ptold->prcputime);
+	
 	uint32 oldprio = ptold->prprio;
 
 	if(ptold->prstate == PR_CURR) {
@@ -55,14 +46,21 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 		ptold->prprio = tstab[oldprio].ts_tqexp;
 		
 		// if current process has highest priority resume with new quantum
-		if(ptold->prprio > firstkey(readylist)) {
+		if((ptold->prprio > firstkey(ioreadylist) && ! isempty(ioreadylist)) || (ptold->prprio > firstkey(cpureadylist) && isempty(ioreadylist))) {
 			preempt = tstab[ptold->prprio].ts_quantum;
 			return;
 		}
 
 		// push into readlist
 		ptold->prstate = PR_READY;
-		insert(currpid, readylist, ptold->prprio);
+		//insert(currpid, readylist, ptold->prprio);
+		if(ptold->prprio < 50) {
+			insert(currpid, cpureadylist, ptold->prprio);
+			// kprintf("Inserted into cpureadylist\n");
+		} else {
+			// kprintf("Inserted into ioreadylist\n");
+			insert(currpid, ioreadylist, ptold->prprio);
+		}
 
 	} else if(ptold->prstate == PR_SLEEP) {
 		
@@ -73,14 +71,15 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 
 	/* Force context switch to highest priority ready process */
-
-	currpid = dequeue(readylist);
-
+	if(!isempty(ioreadylist))
+		currpid = dequeue(ioreadylist);
+	else
+		currpid = dequeue(cpureadylist);
 	/* Apply check for nullprocess being dequeued and readlist is not empty
 	 * if yes insert back the null process into the readylist at the tail */
-	if(currpid == NULLPROC && !isempty(readylist) ) {
-		insert(currpid, readylist, NULLPROC);
-		currpid = dequeue(readylist);
+	if(currpid == NULLPROC && !isempty(cpureadylist) ) {
+		insert(currpid, cpureadylist, NULLPROC);
+		currpid = dequeue(cpureadylist);
 	}
 
 

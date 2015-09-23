@@ -55,6 +55,10 @@ typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 #define	TIMEOUT	(-3)		/* system call timed out		*/
 
 extern	qid16	readylist;	/* global ID for list of ready processes*/
+extern 	qid16	ioreadylist;	/* global ID for list of iobound ready processes */
+extern 	qid16	cpureadylist;	/* global ID for list of cpubound ready processes */
+
+
 #define	MINSTK	400		/* minimum stack size in bytes		*/
 
 #define	CONTEXT	64		/* bytes in a function call context on	*/
