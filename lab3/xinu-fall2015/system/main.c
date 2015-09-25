@@ -39,6 +39,15 @@ void test_half1() {
 } 
 
 void test_half2() {
+	resume( create(cpuintensive, 2048, 20, "CPUProc1", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc2", 0, NULL));
+	resume( create(cpuintensive, 2048, 20, "CPUProc3", 0, NULL));
+	
+	uint32 sleeptime = 5;
+	resume( create(iointensive, 2048, 20, "IOProc1", 1, 7));
+	resume( create(iointensive, 2048, 20, "IOProc2", 1, 13));
+	resume( create(iointensive, 2048, 20, "IOProc3", 1, 29));
+
 
 }
 
@@ -62,14 +71,15 @@ process	main(void)
 
   	kprintf("===== Lab2B - Problem 3.3 =====\n");
   	// Half CPU-, half IO- intensive, v1
-	test_half1();
+	//test_half1();
 
   	kprintf("===== Lab2B - Problem 3.4 =====\n");
   	// Half CPU-, half IO- intensive, 
+	test_half2();
 
   	kprintf("===== Lab2B - Bonus Problem =====\n");
   	// One CPU-intensive, one hybrid
 
-	kprintf("\nPID: %d, \tCPU-Time: %d", getpid(), proctab[getpid()].prcputime);
+	kprintf("\nPID: %d, CPU-Time: %d", getpid(), proctab[getpid()].prcputime);
 	return OK;
 }

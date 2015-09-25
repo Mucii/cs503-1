@@ -27,6 +27,6 @@ void cpuintensive() {
 		kprintf("\nPID: %d \tLoop count: %d", pid, i);
 	}
 
-	kprintf("\nPID: %d, \tCPU-Time: %d", pid, proctab[pid].prcputime);
+	kprintf("\nPID: %d, CPU-Time: %d", pid, proctab[pid].prcputime);
 
 }

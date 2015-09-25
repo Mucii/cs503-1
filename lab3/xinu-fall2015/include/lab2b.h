@@ -9,5 +9,5 @@ void iointensive(uint32 time);
 void hybridprocess(pid32 cpu_intensive);
 
 /* LAB2BTODO: Add more declarations here, if necessary. */
-
+extern uint32 myglobalclock;
 #endif  // __LAB2_B_H_

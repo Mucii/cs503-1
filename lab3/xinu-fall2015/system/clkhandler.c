@@ -24,6 +24,7 @@ void	clkhandler()
 	}
 
 	/* AYUSH EDIT Lab2b */
+	myglobalclock++;
 	/* Uodate the CPU usage time for the current process by 1 ms*/
 	if(!isbadpid(currpid)) {
 		struct procent *ptr = &proctab[currpid];

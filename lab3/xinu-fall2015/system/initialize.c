@@ -25,6 +25,8 @@ struct	memblk	memlist;	/* List of free memory blocks		*/
 /* LAB2BTODO: Add necessary declarations here */
 /* AYUSH EDIT Lab2b */
 struct ts_ent tstab[NUMLEVELS];
+qid16 multiqueue[NUMLEVELS];
+uint32 myglobalclock;
 
 /* Active system status */
 
@@ -214,6 +216,7 @@ static	void	sysinit()
 		prptr->prstkbase = NULL;
 		prptr->prprio = 0;
 		prptr->prcputime = 0;
+		prptr->waittime = 0;
 	}
 
 	/* Initialize the Null process entry */
@@ -252,6 +255,13 @@ static	void	sysinit()
 	if(ioreadylist == SYSERR || cpureadylist == SYSERR)
 	kprintf("\nSYSERR....");
 
+	for(i = 0; i < NUMLEVELS + 1; i++) {
+		multiqueue[i] = newqueue();
+		if(multiqueue[i] == SYSERR)
+			kprintf("\nSYSERR..");
+	}
+
+	myglobalclock = 0;
 	/* Initialize the real time clock */
 	
 	clkinit();

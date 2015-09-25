@@ -57,7 +57,7 @@ typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 extern	qid16	readylist;	/* global ID for list of ready processes*/
 extern 	qid16	ioreadylist;	/* global ID for list of iobound ready processes */
 extern 	qid16	cpureadylist;	/* global ID for list of cpubound ready processes */
-
+extern 	qid16	multiqueue[];	/* global ID for lists of ready processes */
 
 #define	MINSTK	400		/* minimum stack size in bytes		*/
 
