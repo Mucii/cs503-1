@@ -11,7 +11,7 @@ void cpuintensive() {
 	/* LAB2BTODO */
 	int i, j, k;
 	int a[1000];
-
+	uint32 inittime = myglobalclock;
 	for(i = 0; i < 1000; i++) a[i] = i;
 	pid32 pid = getpid();
 
@@ -23,10 +23,10 @@ void cpuintensive() {
 				tmp[k] = a[k];
 			}
 		}
-
-		kprintf("\nPID: %d \tLoop count: %d", pid, i);
+		/* the waitime till now can be given by myglobalclock - starttime of the process */
+		kprintf("\nPID: %d \tLoop count: %d Wait-Time %d", pid, i, myglobalclock - inittime);
 	}
 
-	kprintf("\nPID: %d, CPU-Time: %d", pid, proctab[pid].prcputime);
+	kprintf("\nPID: %d, CPU-Time: %d Wait-Time %d", pid, proctab[pid].prcputime, myglobalclock - inittime);
 
 }

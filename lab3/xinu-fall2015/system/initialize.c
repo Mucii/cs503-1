@@ -23,9 +23,12 @@ struct	sentry	semtab[NSEM];	/* Semaphore table			*/
 struct	memblk	memlist;	/* List of free memory blocks		*/
 
 /* LAB2BTODO: Add necessary declarations here */
-/* AYUSH EDIT Lab2b */
+/* ayush edit */
+
+/* data structure to store TS Dispatcher table */
 struct ts_ent tstab[NUMLEVELS];
-qid16 multiqueue[NUMLEVELS];
+
+/* counter to maintain global clock in ms */
 uint32 myglobalclock;
 
 /* Active system status */
@@ -99,6 +102,8 @@ void	nulluser()
 }
 
 
+/* function to populate the tstab with the approriate value */
+
 static void tsinit() {
 	
 	int i = 0;
@@ -109,12 +114,16 @@ static void tsinit() {
 		tsptr->ts_tqexp = 0;
 		tsptr->ts_slpret = 50;
 		tsptr->ts_quantum = 200;
+		tsptr->ts_maxwait = 0;
+		tsptr->ts_lwait = 50;
 	}
 		for(; i < 20; i++) {
 		tsptr = &tstab[i];
 		tsptr->ts_tqexp = i - 10;
 		tsptr->ts_slpret = 51;
 		tsptr->ts_quantum = 160;
+		tsptr->ts_maxwait = 0;	
+		tsptr->ts_lwait = 51;
 	}
 	
 	for(; i < 30; i++) {
@@ -122,6 +131,8 @@ static void tsinit() {
 		tsptr->ts_tqexp = i - 10;
 		tsptr->ts_slpret = 52;
 		tsptr->ts_quantum = 120;
+		tsptr->ts_maxwait = 0;	
+		tsptr->ts_lwait = 52;
 	}
 
 	for(; i < 35; i++) {
@@ -129,6 +140,9 @@ static void tsinit() {
 		tsptr->ts_tqexp = i - 10;
 		tsptr->ts_slpret = 53;
 		tsptr->ts_quantum = 80;
+		tsptr->ts_maxwait = 0;
+		tsptr->ts_lwait = 53;
+	
 	}
 	
 	for(; i < 40; i++) {
@@ -136,6 +150,9 @@ static void tsinit() {
 		tsptr->ts_tqexp = i - 10;
 		tsptr->ts_slpret = 54;
 		tsptr->ts_quantum = 80;
+		tsptr->ts_maxwait = 0;
+		tsptr->ts_lwait = 54;
+	
 	}
 
 	for(; i < 45; i++) {
@@ -143,18 +160,41 @@ static void tsinit() {
 		tsptr->ts_tqexp = i - 10;
 		tsptr->ts_slpret = 55;
 		tsptr->ts_quantum = 40;
+		tsptr->ts_maxwait = 0;
+		tsptr->ts_lwait = 55;
+	
 	}
 
 	tsptr = &tstab[i];
 	tsptr->ts_tqexp = i - 10;
 	tsptr->ts_slpret = 56;
 	tsptr->ts_quantum = 40;
+	tsptr->ts_maxwait = 0;
+	tsptr->ts_lwait = 56;
 	i++;
 
 	tsptr = &tstab[i];
 	tsptr->ts_tqexp = i - 10;
 	tsptr->ts_slpret = 57;
 	tsptr->ts_quantum = 40;
+	tsptr->ts_maxwait = 0;
+	tsptr->ts_lwait = 57;
+	i++;
+	
+	tsptr = &tstab[i];
+	tsptr->ts_tqexp = i - 10;
+	tsptr->ts_slpret = 58;
+	tsptr->ts_quantum = 40;
+	tsptr->ts_maxwait = 0;
+	tsptr->ts_lwait = 58;
+	i++;
+	
+	tsptr = &tstab[i];
+	tsptr->ts_tqexp = i - 10;
+	tsptr->ts_slpret = 58;
+	tsptr->ts_quantum = 40;
+	tsptr->ts_maxwait = 0;
+	tsptr->ts_lwait = 58;
 	i++;
 	
 	for(; i < 59; i++) {
@@ -162,12 +202,16 @@ static void tsinit() {
 		tsptr->ts_tqexp = i - 10;
 		tsptr->ts_slpret = 58;
 		tsptr->ts_quantum = 40;
+		tsptr->ts_maxwait = 0;
+		tsptr->ts_lwait = 59;
 	}
 	
 	tsptr = &tstab[i];
 	tsptr->ts_tqexp = i - 10;
 	tsptr->ts_slpret = 59;
 	tsptr->ts_quantum = 20;
+	tsptr->ts_maxwait = 32000;
+	tsptr->ts_lwait = 59;
 
 }
 
@@ -215,6 +259,8 @@ static	void	sysinit()
 		prptr->prname[0] = NULLCH;
 		prptr->prstkbase = NULL;
 		prptr->prprio = 0;
+		
+		/* added initialize for cputime and waittime */
 		prptr->prcputime = 0;
 		prptr->waittime = 0;
 	}
@@ -243,27 +289,24 @@ static	void	sysinit()
 
 	bufinit();
 
-	/*  AYUSH EDIT lab2b */
+
 	/* Intialize TS data structure*/
 	tsinit();
 
 	/* Create a ready list for processes */
 
 	readylist = newqueue();
-	ioreadylist = newqueue();
-	cpureadylist = newqueue();
-	if(ioreadylist == SYSERR || cpureadylist == SYSERR)
-	kprintf("\nSYSERR....");
-
+	
+	/* initialize the multi-level queue for NUMLEVELS + 1 entries */
 	for(i = 0; i < NUMLEVELS + 1; i++) {
 		multiqueue[i] = newqueue();
 		if(multiqueue[i] == SYSERR)
 			kprintf("\nSYSERR..");
 	}
 
-	myglobalclock = 0;
 	/* Initialize the real time clock */
-	
+	myglobalclock = 0;
+
 	clkinit();
 
 	for (i = 0; i < NDEVS; i++) {

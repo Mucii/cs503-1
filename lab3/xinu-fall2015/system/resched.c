@@ -26,89 +26,43 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 	ptold = &proctab[currpid];
 
-	/* AYUSH EDIT lab2b */
-
-	/* Update WaitTimes add start vairable aslo */
-
-
 	/* TS scheduler policy
-	 * 1. check ptold.prstate
-	 * 2. update the priority according to the TS dispatcher based on desired process state
-	 * 3. if current process still has highest priority resume with new quantum
-	 * 4. insert into the readlist with updated priority
-	 * 5. pick highest prioirty process from the readylist
+	 * 1. check ptold.prstate 
+	 * 2. if current process still has highest priority resume without rescheduling
+	 *    	insert into the readylist (see clkhandler.c: handles priority update on time slice expiry)
+	 *    else if sleeping process update prioirty according to dispatch table
+	 * 4. pick highest prioirty process from the readylist
 	 * */
 
 	// kprintf("\nCLK %d Process [%s] \tPrio: %d \tcputime: %d\n", ctr1000, ptold->prname, ptold->prprio, ptold->prcputime);
 	
 	uint32 oldprio = ptold->prprio;
-
-	/*if(ptold->prstate == PR_CURR) {
-
-		// update priority
-		ptold->prprio = tstab[oldprio].ts_tqexp;
-		
-		// if current process has highest priority resume with new quantum
-		if((ptold->prprio > firstkey(ioreadylist) && ! isempty(ioreadylist)) || (ptold->prprio > firstkey(cpureadylist) && isempty(ioreadylist))) {
-			preempt = tstab[ptold->prprio].ts_quantum;
-			return;
-		}
-
-		// push into readlist
-		ptold->prstate = PR_READY;
-		//insert(currpid, readylist, ptold->prprio);
-		if(ptold->prprio < 50) {
-			insert(currpid, cpureadylist, ptold->prprio);
-			// kprintf("Inserted into cpureadylist\n");
-		} else {
-			// kprintf("Inserted into ioreadylist\n");
-			insert(currpid, ioreadylist, ptold->prprio);
-		}
-
-	} else if(ptold->prstate == PR_SLEEP) {
-		
-		// update priority
-		ptold->prprio = tstab[oldprio].ts_slpret;
-	
-	}
-
-
-	if(!isempty(ioreadylist))
-		currpid = dequeue(ioreadylist);
-	else
-		currpid = dequeue(cpureadylist);
-	// Apply check for nullprocess being dequeued and readlist is not empty
-	//  if yes insert back the null process into the readylist at the tail
-	if(currpid == NULLPROC && !isempty(cpureadylist) ) {
-		insert(currpid, cpureadylist, NULLPROC);
-		currpid = dequeue(cpureadylist);
-	}*/
 	
 	int level = NUMLEVELS;
+	/* find the highest level which is not empty */
 	while(isempty(multiqueue[level]) && level > 0) level--;
+
 
 	if(ptold->prstate == PR_CURR) {
 
-		// update priority if not higher process
-		if(oldprio < NUMLEVELS)
-			ptold->prprio = tstab[oldprio].ts_tqexp;
-
-
-		// if current process has highest priority resume with new quantum
+		// if current process has highest priority resume
 		if(ptold->prprio > firstkey(multiqueue[level])) {
-			if(ptold->prprio < NUMLEVELS)
-				preempt = tstab[ptold->prprio].ts_quantum;
-			else preempt = QUANTUM;
 			return;
 		}
+		
 
-		// push into readlist
+		// else push into readylist
+		// Note: if it a process has priority higher than NUMLEVELS - 1
+		// it is considered to be a system process and added to level NUMLEVEL
+		// else a process is added to the appropriate level according to current priority
+		
 		ptold->prstate = PR_READY;
 		if(ptold->prprio < NUMLEVELS) {
 			insert(currpid, multiqueue[ptold->prprio], ptold->prprio);
 		} else { 
 			insert(currpid, multiqueue[NUMLEVELS], ptold->prprio);
 		}
+
 
 	} else if(ptold->prstate == PR_SLEEP) {
 		
@@ -118,21 +72,22 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	
 	}
 
-
+	
 	currpid = dequeue(multiqueue[level]);
+
 	// Apply check for nullprocess being dequeued and readlist is not empty
 	//  if yes insert back the null process into the readylist at the tail
+	
 	if(currpid == NULLPROC && !isempty(multiqueue[level]) ) {
 		insert(currpid, multiqueue[level], NULLPROC);
 		currpid = dequeue(multiqueue[level]);
 	}
 
-	// TODO use waittime to avoid sleep
 
 	ptnew = &proctab[currpid];
 	ptnew->prstate = PR_CURR;
   	
-	/* AYUSH EDIT lab2b */
+	/* set preempt value to the quantum defined for current priority */
 	preempt = tstab[ptnew->prprio].ts_quantum;		/* Reset time slice for process	*/
 	
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);

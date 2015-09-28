@@ -8,6 +8,8 @@
 
 void iointensive(uint32 time) {
   	/* LAB2BTODO */
+
+	/* ayush edit */
 	int i, j;
 
 	pid32 pid = getpid();
@@ -17,9 +19,9 @@ void iointensive(uint32 time) {
 		
 			sleeptime = myglobalclock;
 			sleepms(time);
-			kprintf("\nPID %d, Sleep Diff %d", pid, (myglobalclock - sleeptime - time));
+			// use below printf to see the if the desired sleep time is achieved 
+			// kprintf("\nPID %d, Sleep Diff %d", pid, (myglobalclock - sleeptime - time));
 		}
-
 		kprintf("\nPID: %d \tLoop count: %d", pid, i);
 	}
 

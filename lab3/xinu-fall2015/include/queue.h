@@ -8,8 +8,10 @@
 /*			2 for sleep list plus 2 per semaphore		*/
 #ifndef NQENT
 
-/* AYUSH EDIT added space for 60 queues */
-#define NQENT	(NPROC + 4 + NSEM + NSEM + 4 + 124)
+/* ayush edit
+ * added space for 60 queues */
+
+#define NQENT	(NPROC + 4 + NSEM + NSEM + 124)
 #endif
 
 #define	EMPTY	(-1)		/* Null value for qnext or qprev index	*/

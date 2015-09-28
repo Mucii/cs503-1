@@ -52,9 +52,15 @@ struct procent {		/* Entry in the process table		*/
 	umsg32	prmsg;		/* Message sent to this process		*/
 	bool8	prhasmsg;	/* Nonzero iff msg is valid		*/
 	int16	prdesc[NDESC];	/* Device descriptors for process	*/
-	/* AYUSH EDIT Lab2b */
+	/* ayush edit */
 	uint32  prcputime;	/* CPU time usage of the current process */
-	uint32	waittime;	/* wait time in the ready list		*/
+	
+	/* wait time is defined as the time since which the process has
+	 * not received its full time slice to execute since last time
+	 * or from when it was created
+	 * this is implement the bonus problem */
+
+	uint32	waittime;
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

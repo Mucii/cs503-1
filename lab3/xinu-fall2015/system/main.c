@@ -53,32 +53,31 @@ void test_half2() {
 
 void test_starvation() {
 
+	pid32 cpu_intensive = create(cpuintensive, 2048, 20, "CPUProc1", 0, NULL); 
+	resume(cpu_intensive);
+
+	resume( create(hybridprocess, 2048, 20, "HybridProcess", 1, cpu_intensive));
+	
 }
 
 process	main(void)
 {
   	/* Lab2BTODO */
-  	kprintf("===== Lab2B =====\n");
 	
 	
-	kprintf("===== Lab2B - Problem 3.1 =====\n");
   	// All CPU intensive
 	// test_allcpu();
 
-  	kprintf("===== Lab2B - Problem 3.2 =====\n");
   	// All IO intensive
-	// test_allio();
+	 test_allio();
 
-  	kprintf("===== Lab2B - Problem 3.3 =====\n");
   	// Half CPU-, half IO- intensive, v1
-	//test_half1();
+	// test_half1();
 
-  	kprintf("===== Lab2B - Problem 3.4 =====\n");
-  	// Half CPU-, half IO- intensive, 
-	test_half2();
+	//test_half2();
 
-  	kprintf("===== Lab2B - Bonus Problem =====\n");
   	// One CPU-intensive, one hybrid
+	//test_starvation();
 
 	kprintf("\nPID: %d, CPU-Time: %d", getpid(), proctab[getpid()].prcputime);
 	return OK;
