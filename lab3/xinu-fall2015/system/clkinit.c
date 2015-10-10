@@ -6,6 +6,7 @@ uint32	clktime;		/* Seconds since boot			*/
 uint32	ctr1000 = 0;		/* Milliseconds since boot		*/
 qid16	sleepq;			/* Queue of sleeping processes		*/
 uint32	preempt;		/* Preemption counter			*/
+volatile uint32 myglobalclock;
 
 /*------------------------------------------------------------------------
  * clkinit  -  Initialize the clock and sleep queue at startup (x86)
@@ -21,7 +22,9 @@ void	clkinit(void)
 
 	/* Initialize the preemption count */
 
-	preempt = QUANTUM;
+	//preempt = QUANTUM;
+	// added for Lab2B
+	preempt = tstab[0].ts_quantum;
 
 	/* Initialize the time since boot to zero */
 

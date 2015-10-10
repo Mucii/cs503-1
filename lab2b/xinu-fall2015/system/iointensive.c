@@ -20,7 +20,7 @@ void iointensive(uint32 time) {
 			sleeptime = myglobalclock;
 			sleepms(time);
 			// use below printf to see the if the desired sleep time is achieved 
-			// kprintf("\nPID %d, Sleep Diff %d", pid, (myglobalclock - sleeptime - time));
+			kprintf("\nPID %d, Sleep Diff %d", pid, (myglobalclock - sleeptime - time));
 		}
 		kprintf("\nPID: %d \tLoop count: %d", pid, i);
 	}

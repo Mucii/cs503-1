@@ -58,6 +58,9 @@ pid32	create(
 	prptr->prdesc[1] = CONSOLE;
 	prptr->prdesc[2] = CONSOLE;
 
+	// added for Lab2B
+	prptr->prcputime = 0;
+
 	/* Initialize stack as if the process was called		*/
 
 	*saddr = STACKMAGIC;

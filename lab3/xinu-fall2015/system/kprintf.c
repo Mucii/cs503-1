@@ -99,15 +99,10 @@ extern	void	_doprnt(char *, va_list ap, int (*)(int));
  */
 syscall kprintf(char *fmt, ...)
 {
-  /*
-   * added for Lab2B
-   *
-   * I added back disable interrupt for clearer printing. One possible reason
-   * for their removal from previous codes might be that it's not accurate
-   * anymore when printing without interrupts disabled.
-   */
-  intmask mask;
-  mask = disable();
+	// added for Lab2B
+	// I added back disable interrupt for clearer printing.
+	intmask mask;
+	mask = disable();
 
 	va_list ap;
 
@@ -115,6 +110,6 @@ syscall kprintf(char *fmt, ...)
 	_doprnt(fmt, ap, (int (*)(int))kputc);
 	va_end(ap);
 
-  restore(mask);
+	restore(mask);
 	return OK;
 }

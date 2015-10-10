@@ -3,30 +3,37 @@
 #include <xinu.h>
 #include <lab2b.h>
 
-#define LOOP1 5
-#define LOOP2 1000000
-
 void cpuintensive() {
-  	
-	/* LAB2BTODO */
-	int i, j, k;
-	int a[1000];
-	uint32 inittime = myglobalclock;
-	for(i = 0; i < 1000; i++) a[i] = i;
-	pid32 pid = getpid();
+	// added in Lab2-B
 
-	for(i = 0; i <= LOOP1; i++) {
-		for(j = 0; j <= LOOP2; j++) {
-			int tmp[1000];
-			for(k = 0; k < 100; k++) {
-				a[k] = (a[k] + 1) % 1000;
-				tmp[k] = a[k];
-			}
+	int starting = myglobalclock;
+
+	// added for Lab2B
+	int i, j;
+	int LOOP1 = 10;
+	int LOOP2 = 10000000;
+
+	struct procent *pr = &proctab[currpid];
+
+	int v = 0;
+	for (i=0; i<LOOP1; i++) {
+		for (j=0; j<LOOP2; j++) {
+			// Insert code that performs memory copy (slow) and/or
+			// ALU operations (fast).
+			// Note: this loop consumes significant CPU cycles.
+			v += i * j;
 		}
-		/* the waitime till now can be given by myglobalclock - starttime of the process */
-		kprintf("\nPID: %d \tLoop count: %d Wait-Time %d", pid, i, myglobalclock - inittime);
+
+		// Using kprintf print the pid followed the outer loop count i,
+		// the process's priority and remaining time slice (preempt).
+		kprintf("PID: %d, Loop: %d, Priority: %d, Remaining Time Slice: %d\n", currpid, i, pr->prprio, preempt);
 	}
 
-	kprintf("\nPID: %d, CPU-Time: %d Wait-Time %d", pid, proctab[pid].prcputime, myglobalclock - inittime);
+	// Print the CPU time consumed by the process that is recorded in the
+	// prcputime field of the current process's process table entry.
 
+	int ending = myglobalclock;
+
+	// Printing wall-clock is only for debugging
+	kprintf("===== PID %d, CPU TIME: %d, Wall Clock: %d\n", currpid, pr->prcputime, ending - starting);
 }

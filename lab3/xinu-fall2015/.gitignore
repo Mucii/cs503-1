@@ -1,16 +1,6 @@
 # This file is to be copied into each lab's code directory
 # after adding all of their initial files into repository.
 
-# object files
-*.o
-*.ko
-*.obj
-*.elf
-
-#.nfs files
-.nfs*
-
-# xinu
 *.xbin
 *.bin
 compile/.vers_num

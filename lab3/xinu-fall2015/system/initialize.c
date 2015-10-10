@@ -4,7 +4,6 @@
 
 #include <xinu.h>
 #include <string.h>
-#include <lab2b.h>
 
 extern	void	start(void);	/* Start of Xinu code			*/
 extern	void	*_end;		/* End of Xinu code			*/
@@ -22,14 +21,9 @@ struct	procent	proctab[NPROC];	/* Process table			*/
 struct	sentry	semtab[NSEM];	/* Semaphore table			*/
 struct	memblk	memlist;	/* List of free memory blocks		*/
 
-/* LAB2BTODO: Add necessary declarations here */
-/* ayush edit */
+// added for Lab2B
+struct  ts_ent  tstab[TS_LEVELS];
 
-/* data structure to store TS Dispatcher table */
-struct ts_ent tstab[NUMLEVELS];
-
-/* counter to maintain global clock in ms */
-uint32 myglobalclock;
 
 /* Active system status */
 
@@ -102,118 +96,61 @@ void	nulluser()
 }
 
 
-/* function to populate the tstab with the approriate value */
+// added for Lab2B
+void tsinit() {
+	int i;
 
-static void tsinit() {
-	
-	int i = 0;
-	struct ts_ent *tsptr;
-
-	for(; i < 10; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = 0;
-		tsptr->ts_slpret = 50;
-		tsptr->ts_quantum = 200;
-		tsptr->ts_maxwait = 0;
-		tsptr->ts_lwait = 50;
-	}
-		for(; i < 20; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = i - 10;
-		tsptr->ts_slpret = 51;
-		tsptr->ts_quantum = 160;
-		tsptr->ts_maxwait = 0;	
-		tsptr->ts_lwait = 51;
-	}
-	
-	for(; i < 30; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = i - 10;
-		tsptr->ts_slpret = 52;
-		tsptr->ts_quantum = 120;
-		tsptr->ts_maxwait = 0;	
-		tsptr->ts_lwait = 52;
+	// initialize ts_tqexp
+	for (i = 0; i < TS_LEVELS; i++) {
+		if (i == 0) {
+			// 0 could only be PRNULL.
+			tstab[i].ts_tqexp = 0;
+		}
+		else if (i <= 10) {
+			// Set to 1, so that always > PRNULL.
+			tstab[i].ts_tqexp = 1;
+		}
+		else {
+			tstab[i].ts_tqexp = i - 10;
+		}
 	}
 
-	for(; i < 35; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = i - 10;
-		tsptr->ts_slpret = 53;
-		tsptr->ts_quantum = 80;
-		tsptr->ts_maxwait = 0;
-		tsptr->ts_lwait = 53;
-	
-	}
-	
-	for(; i < 40; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = i - 10;
-		tsptr->ts_slpret = 54;
-		tsptr->ts_quantum = 80;
-		tsptr->ts_maxwait = 0;
-		tsptr->ts_lwait = 54;
-	
-	}
-
-	for(; i < 45; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = i - 10;
-		tsptr->ts_slpret = 55;
-		tsptr->ts_quantum = 40;
-		tsptr->ts_maxwait = 0;
-		tsptr->ts_lwait = 55;
-	
+	// initialize ts_slpret
+	for (i = 0; i < TS_LEVELS; i++) {
+		if (i <= 34) {
+			tstab[i].ts_slpret = 50 + i / 10;
+		}
+		else if (i <= 44) {
+			tstab[i].ts_slpret = 54 + (i - 35) / 5;
+		}
+		else if (i == 45) {
+			tstab[i].ts_slpret = 56;
+		}
+		else if (i == 46) {
+			tstab[i].ts_slpret = 57;
+		}
+		else if (i == 59) {
+			tstab[i].ts_slpret = 59;
+		}
+		else {
+			tstab[i].ts_slpret = 58;
+		}
 	}
 
-	tsptr = &tstab[i];
-	tsptr->ts_tqexp = i - 10;
-	tsptr->ts_slpret = 56;
-	tsptr->ts_quantum = 40;
-	tsptr->ts_maxwait = 0;
-	tsptr->ts_lwait = 56;
-	i++;
-
-	tsptr = &tstab[i];
-	tsptr->ts_tqexp = i - 10;
-	tsptr->ts_slpret = 57;
-	tsptr->ts_quantum = 40;
-	tsptr->ts_maxwait = 0;
-	tsptr->ts_lwait = 57;
-	i++;
-	
-	tsptr = &tstab[i];
-	tsptr->ts_tqexp = i - 10;
-	tsptr->ts_slpret = 58;
-	tsptr->ts_quantum = 40;
-	tsptr->ts_maxwait = 0;
-	tsptr->ts_lwait = 58;
-	i++;
-	
-	tsptr = &tstab[i];
-	tsptr->ts_tqexp = i - 10;
-	tsptr->ts_slpret = 58;
-	tsptr->ts_quantum = 40;
-	tsptr->ts_maxwait = 0;
-	tsptr->ts_lwait = 58;
-	i++;
-	
-	for(; i < 59; i++) {
-		tsptr = &tstab[i];
-		tsptr->ts_tqexp = i - 10;
-		tsptr->ts_slpret = 58;
-		tsptr->ts_quantum = 40;
-		tsptr->ts_maxwait = 0;
-		tsptr->ts_lwait = 59;
+	// initialize ts_quantum
+	for (i = 0; i < TS_LEVELS; i++) {
+		if (i < 40) {
+			tstab[i].ts_quantum = 200 - (i / 10) * 40;
+		}
+		else if (i == 59) {
+			tstab[i].ts_quantum = 20;
+		}
+		else {
+			tstab[i].ts_quantum = 40;
+		}
 	}
-	
-	tsptr = &tstab[i];
-	tsptr->ts_tqexp = i - 10;
-	tsptr->ts_slpret = 59;
-	tsptr->ts_quantum = 20;
-	tsptr->ts_maxwait = 32000;
-	tsptr->ts_lwait = 59;
-
 }
+
 
 /*------------------------------------------------------------------------
  *
@@ -223,8 +160,6 @@ static void tsinit() {
  */
 static	void	sysinit()
 {
-  /* LAB2BTODO: Modify this function to initialize TS related data structures */
-
 	int32	i;
 	struct	procent	*prptr;		/* Ptr to process table entry	*/
 	struct	sentry	*semptr;	/* Ptr to semaphore table entry	*/
@@ -259,10 +194,8 @@ static	void	sysinit()
 		prptr->prname[0] = NULLCH;
 		prptr->prstkbase = NULL;
 		prptr->prprio = 0;
-		
-		/* added initialize for cputime and waittime */
+		// added for Lab2B
 		prptr->prcputime = 0;
-		prptr->waittime = 0;
 	}
 
 	/* Initialize the Null process entry */
@@ -289,29 +222,28 @@ static	void	sysinit()
 
 	bufinit();
 
-
-	/* Intialize TS data structure*/
-	tsinit();
-
 	/* Create a ready list for processes */
 
-	readylist = newqueue();
-	
-	/* initialize the multi-level queue for NUMLEVELS + 1 entries */
-	for(i = 0; i < NUMLEVELS + 1; i++) {
-		multiqueue[i] = newqueue();
-		if(multiqueue[i] == SYSERR)
-			kprintf("\nSYSERR..");
+	for (i = 0; i <= TS_LEVELS; i++) {
+		// if NQENT is not updated correctly, here it may return SYSERR.
+		readylists[i] = newqueue();
 	}
+	//readylist = newqueue();
+
+	// added for Lab2B
+	tsinit();
+	//printtsinfo();
 
 	/* Initialize the real time clock */
-	myglobalclock = 0;
 
 	clkinit();
 
 	for (i = 0; i < NDEVS; i++) {
 		init(i);
 	}
+
+	// added for Lab2B
+	myglobalclock = 0;
 
 	return;
 }

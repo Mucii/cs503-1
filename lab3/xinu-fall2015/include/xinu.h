@@ -1,5 +1,7 @@
 /* xinu.h - include all system header files */
 
+#define LAB3
+
 #include <kernel.h>
 #include <conf.h>
 #include <process.h>
@@ -42,3 +44,5 @@
 #include <multiboot.h>
 #include <stdio.h>
 #include <string.h>
+// added for Lab3
+#include <rt.h>

@@ -54,17 +54,14 @@ typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 #define	EOF	(-2)		/* End-of-file (usually from read)	*/
 #define	TIMEOUT	(-3)		/* system call timed out		*/
 
-extern	qid16	readylist;	/* global ID for list of ready processes*/
-extern 	qid16	multiqueue[];	/* global ID for lists of ready processes */
+extern	qid16	readylists[];	/* global ID for lists of ready processes*/
+//extern	qid16	readylist;	/* global ID for list of ready processes*/
 
 #define	MINSTK	400		/* minimum stack size in bytes		*/
 
 #define	CONTEXT	64		/* bytes in a function call context on	*/
 				/* the run-time stack			*/
-
-/* ayush edit 
- * updated QUANTUM to that of process priority 20 */
-#define	QUANTUM	120		/* time slice in milliseconds		*/
+#define	QUANTUM	2		/* time slice in milliseconds		*/
 
 /* Size of the stack for the null process */
 

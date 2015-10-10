@@ -2,16 +2,19 @@
 
 /* Queue structure declarations, constants, and inline functions	*/
 
-/* Lab2BTODO: Modify here to implement multi-level feedback queue. */
-
 /* Default # of queue entries: 1 per process plus 2 for ready list plus	*/
 /*			2 for sleep list plus 2 per semaphore		*/
 #ifndef NQENT
-
-/* ayush edit
- * added space for 60 queues */
-
-#define NQENT	(NPROC + 4 + NSEM + NSEM + 124)
+/*
+ * Now it's:
+ *   1 per process +
+ *   2 per Time Sharing Level +
+ *   2 for higher priority process readylist (e.g. daemon)
+ *   2 for sleep list
+ *   2 per semaphore
+ */
+#define NQENT	(NPROC + TS_LEVELS + TS_LEVELS + 4 + NSEM + NSEM)
+//#define NQENT	(NPROC + 4 + NSEM + NSEM)
 #endif
 
 #define	EMPTY	(-1)		/* Null value for qnext or qprev index	*/

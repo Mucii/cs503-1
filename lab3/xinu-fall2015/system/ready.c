@@ -2,13 +2,54 @@
 
 #include <xinu.h>
 
-qid16	readylist;			/* Index of ready list		*/
+// Extra one list is for non-Time-Sharing processes.
+// That one is still ordered by priority.
+qid16	readylists[TS_LEVELS+1];			/* Index of ready lists		*/
+//qid16	readylist;			/* Index of ready list		*/
 
 
-/* ayush edit 
- * array of readylist for each level from 0 - NUMLEVEL - 1
- * level NUMLEVEL is for higher priority processes to which TS scheduling is not applicable */
-qid16	multiqueue[NUMLEVELS + 1];	/* Indices of readylist for each level */
+/**
+ * @return the corresponding queue id of this priority.
+ */
+qid16 getQueueByPrio(pri16 prio) {
+	int idx = prio;
+
+	if (prio <= 0) {
+		idx = 0;
+	}
+	else if (prio >= TS_LEVELS) {
+		idx = TS_LEVELS;
+	}
+
+	return readylists[idx];
+}
+
+
+/**
+ * If it's TS processes, insert it to the right place in the multi-level
+ * feedback queue. If higher than TS priorities, add it to the rest readylist
+ * that is still ordered by priority.
+ */
+void ts_insert(pid32 pid) {
+	if (isbadpid(pid)) {
+		return;
+	}
+
+	struct procent *prptr = &proctab[pid];
+	if(prptr->prstate == PR_FREE) {
+		return;
+	}
+
+	if (prptr->prprio >= TS_LEVELS) {
+		// Not TS, that readylist is still ordered by priority, thus need insert().
+		insert(pid, getQueueByPrio(prptr->prprio), prptr->prprio);
+	}
+	else {
+		// TS (or NULLPROC), just find the right queue to enqueue().
+		enqueue(pid, getQueueByPrio(prptr->prprio));
+	}
+}
+
 
 /*------------------------------------------------------------------------
  *  ready  -  Make a process eligible for CPU service
@@ -25,22 +66,12 @@ status	ready(
 	}
 
 	/* Set process state to indicate ready and add to ready list */
+
 	prptr = &proctab[pid];
 	prptr->prstate = PR_READY;
-	
-	/* TS scheduler policy
-	 * add to level NUMLEVELS if it is higher priority system process
-	 * else to level as indicated by the current priority
-	 */
-
-	if(prptr->prprio < NUMLEVELS) {
-		insert(pid, multiqueue[prptr->prprio], prptr->prprio);
-	} else { 
-		insert(pid, multiqueue[NUMLEVELS], prptr->prprio);
-	}
-
-	/* since process is just added to readyqueue set waittime = 0 */
-	prptr->waittime = 0;
+	// added for Lab2B
+	//insert(pid, readylist, prptr->prprio);
+	ts_insert(pid);
 	resched();
 
 	return OK;

@@ -3,11 +3,7 @@
 #ifndef __LAB2_B_H_
 #define __LAB2_B_H_
 
+// only CPU-intensive process will be used in Lab3
 void cpuintensive();
-void iointensive(uint32 time);
-/* Passed in CPU-intensive pid can be used to print that process' CPU usage in between. */
-void hybridprocess(pid32 cpu_intensive);
 
-/* LAB2BTODO: Add more declarations here, if necessary. */
-extern uint32 myglobalclock;
 #endif  // __LAB2_B_H_

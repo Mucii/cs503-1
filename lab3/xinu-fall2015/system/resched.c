@@ -4,14 +4,42 @@
 
 struct	defer	Defer;
 
+/**
+ * @return 1 (true) if @param prio is a time sharing process' priority.
+ */
+bool8 tsprio(pri16 prio) {
+  return prio > 0 && prio < TS_LEVELS;
+}
+
+
+/**
+ * @return the highest priority process id in readylists.
+ * To convert to qid16, call getQueueByPrio().
+ */
+local pid32 getHighestProc() {
+	int i;
+	for (i = TS_LEVELS; i >= 0; i--) {
+		if (nonempty(readylists[i])) {
+			/*
+			 * Here it's using firstid(), rather than firstkey()!! Because in
+			 * multi-level feedback queue, all are added by enqueue(), thus there is
+			 * no "key" as that in old readylist.
+			 */
+			return firstid(readylists[i]);
+		}
+	}
+
+	// It's possible to reach here, i.e. when only NULLPROC is there, executing.
+	return SYSERR;
+}
+
+
 /*------------------------------------------------------------------------
  *  resched  -  Reschedule processor to highest priority eligible process
  *------------------------------------------------------------------------
  */
 void	resched(void)		/* Assumes interrupts are disabled	*/
 {
-  /* LAB2BTODO: Modify this function to implement TS scheduling */
-
 	struct procent *ptold;	/* Ptr to table entry for old process	*/
 	struct procent *ptnew;	/* Ptr to table entry for new process	*/
 
@@ -26,70 +54,56 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 	ptold = &proctab[currpid];
 
-	/* TS scheduler policy
-	 * 1. check ptold.prstate 
-	 * 2. if current process still has highest priority resume without rescheduling
-	 *    	insert into the readylist (see clkhandler.c: handles priority update on time slice expiry)
-	 *    else if sleeping process update prioirty according to dispatch table
-	 * 4. pick highest prioirty process from the readylist
-	 * */
+	pid32 highest;
+	if ((highest = getHighestProc()) == SYSERR) {
+		// no other processes, only NULLPROC, thus no need to reschedule
+		preempt = tstab[0].ts_quantum;
+		return;
+	}
 
-	// kprintf("\nCLK %d Process [%s] \tPrio: %d \tcputime: %d\n", ctr1000, ptold->prname, ptold->prprio, ptold->prcputime);
-	
-	uint32 oldprio = ptold->prprio;
-	
-	int level = NUMLEVELS;
-	/* find the highest level which is not empty */
-	while(isempty(multiqueue[level]) && level > 0) level--;
+	// added for Lab2B
+	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
+		// because of timeout, or preempted
 
+		if (preempt < 1 && tsprio(ptold->prprio)) {
+			// set to tqexp only if it has used its entire quantum
+			// ignore non TimeSharing processes
+			ptold->prprio = tstab[ptold->prprio].ts_tqexp;
+		}
 
-	if(ptold->prstate == PR_CURR) {
-
-		// if current process has highest priority resume
-		if(ptold->prprio > firstkey(multiqueue[level])) {
+		//if (ptold->prprio > firstkey(readylist)) {
+		if (ptold->prprio > proctab[highest].prprio) {
+			// Don't change for non-TimeSharing processes
+			preempt = tsprio(ptold->prprio) ? tstab[ptold->prprio].ts_quantum : QUANTUM;
 			return;
 		}
-		
 
-		// else push into readylist
-		// Note: if it a process has priority higher than NUMLEVELS - 1
-		// it is considered to be a system process and added to level NUMLEVEL
-		// else a process is added to the appropriate level according to current priority
-		
+		/* Old process will no longer remain current */
+
 		ptold->prstate = PR_READY;
-		if(ptold->prprio < NUMLEVELS) {
-			insert(currpid, multiqueue[ptold->prprio], ptold->prprio);
-		} else { 
-			insert(currpid, multiqueue[NUMLEVELS], ptold->prprio);
+		ts_insert(currpid);
+		//insert(currpid, readylist, ptold->prprio);
+	}
+	else {
+		// because of blocked, currpid should have been added to some queue.
+
+		if (tsprio(ptold->prprio)) {
+			ptold->prprio = tstab[ptold->prprio].ts_slpret;
 		}
-
-
-	} else if(ptold->prstate == PR_SLEEP) {
-		
-		// update priority
-		if(ptold->prprio < NUMLEVELS)
-			ptold->prprio = tstab[oldprio].ts_slpret;
-	
 	}
 
-	
-	currpid = dequeue(multiqueue[level]);
+	/* Unnecessary starvation code is not included in the code base for Lab3. */
 
-	// Apply check for nullprocess being dequeued and readlist is not empty
-	//  if yes insert back the null process into the readylist at the tail
-	
-	if(currpid == NULLPROC && !isempty(multiqueue[level]) ) {
-		insert(currpid, multiqueue[level], NULLPROC);
-		currpid = dequeue(multiqueue[level]);
-	}
+	/* Force context switch to highest priority ready process */
 
-
+	currpid = dequeue(getQueueByPrio(proctab[highest].prprio));
+	//currpid = dequeue(readylist);
 	ptnew = &proctab[currpid];
 	ptnew->prstate = PR_CURR;
-  	
-	/* set preempt value to the quantum defined for current priority */
-	preempt = tstab[ptnew->prprio].ts_quantum;		/* Reset time slice for process	*/
-	
+	// added for Lab2B
+	preempt = tsprio(ptnew->prprio) ? tstab[ptnew->prprio].ts_quantum : QUANTUM;
+	//preempt = QUANTUM;		/* Reset time slice for process	*/
+
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */
@@ -107,14 +121,14 @@ status	resched_cntl(		/* Assumes interrupts are disabled	*/
 {
 	switch (defer) {
 
-	    case DEFER_START:	/* Handle a deferral request */
+	case DEFER_START:	/* Handle a deferral request */
 
 		if (Defer.ndefers++ == 0) {
 			Defer.attempt = FALSE;
 		}
 		return OK;
 
-	    case DEFER_STOP:	/* Handle end of deferral */
+	case DEFER_STOP:	/* Handle end of deferral */
 		if (Defer.ndefers <= 0) {
 			return SYSERR;
 		}
@@ -123,7 +137,7 @@ status	resched_cntl(		/* Assumes interrupts are disabled	*/
 		}
 		return OK;
 
-	    default:
+	default:
 		return SYSERR;
 	}
 }
