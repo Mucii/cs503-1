@@ -10,10 +10,11 @@
  *   1 per process +
  *   2 per Time Sharing Level +
  *   2 for higher priority process readylist (e.g. daemon)
+ *   2 for RT readylist
  *   2 for sleep list
  *   2 per semaphore
  */
-#define NQENT	(NPROC + TS_LEVELS + TS_LEVELS + 4 + NSEM + NSEM)
+#define NQENT	(NPROC + TS_LEVELS + TS_LEVELS + 2 + 4 + NSEM + NSEM)
 //#define NQENT	(NPROC + 4 + NSEM + NSEM)
 #endif
 

@@ -61,6 +61,10 @@ pid32	create(
 	// added for Lab2B
 	prptr->prcputime = 0;
 
+	/* added for lab3 */
+	// Process is of type TS by default. Type to be updated in rt_create if RT process
+	prptr->prtype = TS_PROC;
+
 	/* Initialize stack as if the process was called		*/
 
 	*saddr = STACKMAGIC;
@@ -110,7 +114,9 @@ pid32	create(
 local	pid32	newpid(void)
 {
 	uint32	i;			/* Iterate through all processes*/
-	static	pid32 nextpid = 1;	/* Position in table to try or	*/
+	
+	// edited for LAB3
+	pid32 nextpid = 1;		/* Position in table to try or	*/
 					/*   one beyond end of table	*/
 
 	/* Check all NPROC slots */

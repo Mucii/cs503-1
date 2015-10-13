@@ -24,6 +24,9 @@ struct	memblk	memlist;	/* List of free memory blocks		*/
 // added for Lab2B
 struct  ts_ent  tstab[TS_LEVELS];
 
+// added for LAB3
+float rmsslk;
+
 
 /* Active system status */
 
@@ -196,6 +199,11 @@ static	void	sysinit()
 		prptr->prprio = 0;
 		// added for Lab2B
 		prptr->prcputime = 0;
+
+		// added for LAB3
+		prptr->prtype = TS_PROC;
+		prptr->rt_period = -1;
+		prptr->rt_comp = -1;
 	}
 
 	/* Initialize the Null process entry */
@@ -207,6 +215,9 @@ static	void	sysinit()
 	prptr->prstkbase = getstk(NULLSTK);
 	prptr->prstklen = NULLSTK;
 	prptr->prstkptr = 0;
+
+	// Added for LAB3
+	prptr->prtype = TS_PROC;
 	currpid = NULLPROC;
 
 	/* Initialize semaphores */
@@ -228,12 +239,17 @@ static	void	sysinit()
 		// if NQENT is not updated correctly, here it may return SYSERR.
 		readylists[i] = newqueue();
 	}
+
+	rt_readylist = newqueue();
 	//readylist = newqueue();
 
 	// added for Lab2B
 	tsinit();
 	//printtsinfo();
 
+	/* added for LAB3 */
+	rmsslk = 0.2;
+	
 	/* Initialize the real time clock */
 
 	clkinit();

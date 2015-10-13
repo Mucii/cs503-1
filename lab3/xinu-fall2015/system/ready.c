@@ -5,8 +5,9 @@
 // Extra one list is for non-Time-Sharing processes.
 // That one is still ordered by priority.
 qid16	readylists[TS_LEVELS+1];			/* Index of ready lists		*/
-//qid16	readylist;			/* Index of ready list		*/
+//qid16	readylist;					/* Index of ready list		*/
 
+qid16 rt_readylist;
 
 /**
  * @return the corresponding queue id of this priority.
@@ -48,8 +49,23 @@ void ts_insert(pid32 pid) {
 		// TS (or NULLPROC), just find the right queue to enqueue().
 		enqueue(pid, getQueueByPrio(prptr->prprio));
 	}
+
+	
+	//kprintf("\nTS Insert [%s] pid [%d]", prptr->prname, pid);
 }
 
+
+void rt_insert(pid32 pid) {
+
+	if(isbadpid(pid)) return;
+
+	if(proctab[pid].prtype == TS_PROC) return ts_insert(pid);
+
+	//kprintf("\nRT Insert [%s] pid [%d]", proctab[pid].prname, pid);
+	
+	// else insert into rt_readylist
+	insert(pid, rt_readylist, proctab[pid].prprio);
+}
 
 /*------------------------------------------------------------------------
  *  ready  -  Make a process eligible for CPU service
@@ -71,7 +87,7 @@ status	ready(
 	prptr->prstate = PR_READY;
 	// added for Lab2B
 	//insert(pid, readylist, prptr->prprio);
-	ts_insert(pid);
+	rt_insert(pid);
 	resched();
 
 	return OK;

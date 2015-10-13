@@ -18,8 +18,16 @@ bool8 tsprio(pri16 prio) {
  */
 local pid32 getHighestProc() {
 	int i;
-	for (i = TS_LEVELS; i >= 0; i--) {
-		if (nonempty(readylists[i])) {
+
+	// edited for LAB3
+	if(!isempty(readylists[TS_LEVELS]))
+		return firstid(readylists[TS_LEVELS]);
+
+	if(!isempty(rt_readylist))
+		return firstid(rt_readylist);
+
+	for (i = TS_LEVELS - 1; i >= 0; i--) {
+		if (!isempty(readylists[i])) {
 			/*
 			 * Here it's using firstid(), rather than firstkey()!! Because in
 			 * multi-level feedback queue, all are added by enqueue(), thus there is
@@ -29,6 +37,7 @@ local pid32 getHighestProc() {
 		}
 	}
 
+	//kprintf("\nNo process Found!");
 	// It's possible to reach here, i.e. when only NULLPROC is there, executing.
 	return SYSERR;
 }
@@ -57,53 +66,73 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	pid32 highest;
 	if ((highest = getHighestProc()) == SYSERR) {
 		// no other processes, only NULLPROC, thus no need to reschedule
+		//kprintf("\nHere!!");
 		preempt = tstab[0].ts_quantum;
 		return;
 	}
+		
+	//kprintf("\nIn Resched highest pid  [%d] ", highest);
+	pri16 oldprio = ptold->prtype == TS_PROC ? ptold->prprio : TS_LEVELS;
+	pri16 highestprio = proctab[highest].prtype  == TS_PROC ? proctab[highest].prprio : TS_LEVELS;
 
 	// added for Lab2B
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
 		// because of timeout, or preempted
 
-		if (preempt < 1 && tsprio(ptold->prprio)) {
+		if (preempt < 1 && tsprio(oldprio)) {
 			// set to tqexp only if it has used its entire quantum
 			// ignore non TimeSharing processes
-			ptold->prprio = tstab[ptold->prprio].ts_tqexp;
+			ptold->prprio = tstab[oldprio].ts_tqexp;
 		}
+		
 
+		// round-robin within RT processes
+		if(ptold->prtype == RT_PROC && proctab[highest].prtype == RT_PROC && ptold->prprio > proctab[highest].prprio) {
+			preempt = QUANTUM;
+			return;
+		}
+	
 		//if (ptold->prprio > firstkey(readylist)) {
-		if (ptold->prprio > proctab[highest].prprio) {
+		//if (ptold->prprio > proctab[highest].prprio) {
+		if(oldprio > highestprio) {	
 			// Don't change for non-TimeSharing processes
-			preempt = tsprio(ptold->prprio) ? tstab[ptold->prprio].ts_quantum : QUANTUM;
+			preempt = tsprio(oldprio) ? tstab[oldprio].ts_quantum : QUANTUM;
 			return;
 		}
 
 		/* Old process will no longer remain current */
 
 		ptold->prstate = PR_READY;
-		ts_insert(currpid);
+		rt_insert(currpid);
+		//ts_insert(currpid);
 		//insert(currpid, readylist, ptold->prprio);
 	}
 	else {
 		// because of blocked, currpid should have been added to some queue.
 
-		if (tsprio(ptold->prprio)) {
-			ptold->prprio = tstab[ptold->prprio].ts_slpret;
+		if (tsprio(oldprio)) {
+			ptold->prprio = tstab[oldprio].ts_slpret;
 		}
 	}
 
 	/* Unnecessary starvation code is not included in the code base for Lab3. */
 
 	/* Force context switch to highest priority ready process */
-
-	currpid = dequeue(getQueueByPrio(proctab[highest].prprio));
+	if(proctab[highest].prtype == RT_PROC)
+		currpid = dequeue(rt_readylist);
+	else 
+		currpid = dequeue(getQueueByPrio(proctab[highest].prprio));
+	
 	//currpid = dequeue(readylist);
 	ptnew = &proctab[currpid];
+
 	ptnew->prstate = PR_CURR;
+	pri16 newprio = ptnew->prtype == TS_PROC ? ptnew->prprio : TS_LEVELS;
 	// added for Lab2B
-	preempt = tsprio(ptnew->prprio) ? tstab[ptnew->prprio].ts_quantum : QUANTUM;
+	preempt = tsprio(newprio) ? tstab[newprio].ts_quantum : QUANTUM;
 	//preempt = QUANTUM;		/* Reset time slice for process	*/
 
+	//kprintf("\nScheduled [%s] type [%d]", ptnew->prname, ptnew->prtype);
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */

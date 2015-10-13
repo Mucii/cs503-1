@@ -38,6 +38,10 @@
 
 #define NDESC		5	/* must be odd to make procent 4N bytes	*/
 
+/* Process types definitions */
+#define TS_PROC 	1
+#define RT_PROC 	2	
+
 /* Definition of the process table (multiple of 32 bits) */
 
 struct procent {		/* Entry in the process table		*/
@@ -53,7 +57,12 @@ struct procent {		/* Entry in the process table		*/
 	bool8	prhasmsg;	/* Nonzero iff msg is valid		*/
 	int16	prdesc[NDESC];	/* Device descriptors for process	*/
 	// added for Lab2B
-	uint32  prcputime; /* Record total CPU usage */
+	uint32  prcputime; 	/* Record total CPU usage */
+	
+	// added for LAB3
+	int 	rt_period;	/* Period(Deadline) of a real-time process	*/
+	int 	rt_comp;	/* CPU requirement of the real-time process	*/
+	int	prtype;		/* Type of process: RT_PROC or TS_PROC		*/
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/
