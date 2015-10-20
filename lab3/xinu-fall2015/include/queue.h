@@ -5,7 +5,7 @@
 /* Default # of queue entries: 1 per process plus 2 for ready list plus	*/
 /*			2 for sleep list plus 2 per semaphore		*/
 #ifndef NQENT
-/*
+/* ayush edit for LAB3
  * Now it's:
  *   1 per process +
  *   2 per Time Sharing Level +

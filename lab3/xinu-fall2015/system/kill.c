@@ -44,6 +44,12 @@ syscall	kill(
 
 	case PR_WAIT:
 		semtab[prptr->prsem].scount++;
+		
+		/* ayush edit
+		 * update request array for deadlock detection
+		 */
+
+		request[getpid()][prptr->prsem]--;
 		/* Fall through */
 
 	case PR_READY:

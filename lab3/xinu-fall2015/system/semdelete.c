@@ -25,10 +25,18 @@ syscall	semdelete(
 		return SYSERR;
 	}
 	semptr->sstate = S_FREE;
+	
+	/* ayush edit
+	 * update deadlock detection data structures */
 
+	// make resource availability zero
+	available[sem] = 0;
 	resched_cntl(DEFER_START);
 	while (semptr->scount++ < 0) {	/* Free all waiting processes	*/
-		ready(getfirst(semptr->squeue));
+		//update request count for the processes waiting
+		pid32 pid = getfirst(semptr->squeue);
+		request[pid][sem] = 0;
+		ready(pid);
 	}
 	resched_cntl(DEFER_STOP);
 	restore(mask);

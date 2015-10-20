@@ -24,7 +24,14 @@ pri16	resume(
 		restore(mask);
 		return (pri16)SYSERR;
 	}
+
 	prio = prptr->prprio;		/* Record priority to return	*/
+	// denote initial release time of the process
+	if(prptr->prtype == RT_PROC) {
+		prptr->prsem = myglobalclock;
+		//kprintf("\nRelease time of %s %d", prptr->prname, prptr->prsem);
+	}
+
 	ready(pid);
 	restore(mask);
 	return prio;

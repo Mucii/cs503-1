@@ -24,9 +24,13 @@ struct	memblk	memlist;	/* List of free memory blocks		*/
 // added for Lab2B
 struct  ts_ent  tstab[TS_LEVELS];
 
-// added for LAB3
-float rmsslk;
-
+/* ayush edit 
+ * declarations for rmsslk
+ * declrations for deadlock detection data structures */
+float rmsslk;			/* value of rms scheduling slackfactpr	*/
+uint32 available[NSEM];		/* number of resources of each type	*/
+uint32 request[NPROC][NSEM];	/* matrix of requests of processes for resources	*/
+uint32 allocation[NPROC][NSEM];	/* matrix ofallocated resources to each process	*/
 
 /* Active system status */
 
@@ -98,7 +102,6 @@ void	nulluser()
 
 }
 
-
 // added for Lab2B
 void tsinit() {
 	int i;
@@ -150,6 +153,20 @@ void tsinit() {
 		}
 		else {
 			tstab[i].ts_quantum = 40;
+		}
+	}
+}
+
+/* initialize data strcutures for deadlock detection */
+void seminit() {
+	int i, j;
+	for(i = 0; i < NSEM; i++) 
+		available[i] = semtab[i].scount;
+	
+	for(i = 0; i < NPROC; i++) {
+		for(j = 0; j < NSEM; j++) {
+			request[i][j] = 0;
+			allocation[i][j] = 0;
 		}
 	}
 }
@@ -218,6 +235,7 @@ static	void	sysinit()
 
 	// Added for LAB3
 	prptr->prtype = TS_PROC;
+
 	currpid = NULLPROC;
 
 	/* Initialize semaphores */
@@ -228,6 +246,9 @@ static	void	sysinit()
 		semptr->scount = 0;
 		semptr->squeue = newqueue();
 	}
+
+	// added for LAB3
+	seminit();
 
 	/* Initialize buffer pools */
 

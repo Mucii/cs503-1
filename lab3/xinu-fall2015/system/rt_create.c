@@ -40,7 +40,9 @@ local int admission_control(int rt_period, int rt_comp) {
 		return OK;
 }
 
-/* Computes rt_priority as follows
+/* Assumption: all RT_PROC will be enqueued at the same level by the scheduler (TS_LEVELS)
+ * hence only need to care about within queue priority
+ * Computes rt_priority as follows
  * prio = 65535 / tr_period
  * prio = 1 if tr_period > 65535
  */
@@ -60,6 +62,7 @@ local pri16 get_rt_priority(int rt_period) {
  *------------------------------------------------------------------------
  */
 
+ /* ayush edit */
 
 pid32	rt_create(
 	int rt_period,	/* Period */
@@ -71,7 +74,6 @@ pid32	rt_create(
 	...
 	)
 {
-	/* LAB3TODO: implement rt_create() */
 	uint32		savsp, *pushsp;
 	intmask 	mask;    	/* Interrupt mask		*/
 	pid32		pid;		/* Stores new process id	*/
@@ -127,12 +129,12 @@ pid32	rt_create(
 	// added for Lab2B
 	prptr->prcputime = 0;
 
-	/* added for lab3 */
+	/* added for LAB3 */
+
 	// Set RT process parameters
 	prptr->prtype = RT_PROC;
 	prptr->rt_period = rt_period;
 	prptr->rt_comp = rt_comp;
-
 	/* Initialize stack as if the process was called		*/
 
 	*saddr = STACKMAGIC;
@@ -184,7 +186,9 @@ local	pid32	newpid(void)
 {
 	uint32	i;			/* Iterate through all processes*/
 	// edited for LAB3
+	// cannot use static variable since create.c also has a local newpid
 	// can make global variable
+
 	pid32 nextpid = 1;		/* Position in table to try or	*/
 					/*   one beyond end of table	*/
 

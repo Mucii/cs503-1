@@ -61,8 +61,11 @@ pid32	create(
 	// added for Lab2B
 	prptr->prcputime = 0;
 
-	/* added for lab3 */
-	// Process is of type TS by default. Type to be updated in rt_create if RT process
+	/* ayush edit
+	 * for LAB3 
+	 */
+
+	// Process is of type TS by default. Type to be set RT_PROXC in rt_create if RT process
 	prptr->prtype = TS_PROC;
 
 	/* Initialize stack as if the process was called		*/
@@ -115,7 +118,12 @@ local	pid32	newpid(void)
 {
 	uint32	i;			/* Iterate through all processes*/
 	
-	// edited for LAB3
+	/* ayush edit for LAB3
+	 * since rt_create also mimics create and has a local newpid()
+	 * static cannot be used in one of them 
+	 * to keep minimal changes I have just made the variable local
+	 */
+
 	pid32 nextpid = 1;		/* Position in table to try or	*/
 					/*   one beyond end of table	*/
 

@@ -62,7 +62,7 @@ struct procent {		/* Entry in the process table		*/
 	// added for LAB3
 	int 	rt_period;	/* Period(Deadline) of a real-time process	*/
 	int 	rt_comp;	/* CPU requirement of the real-time process	*/
-	int	prtype;		/* Type of process: RT_PROC or TS_PROC		*/
+	int	prtype;		/* Type of process: RT_PROC or TS_PROC(TS or system process) */
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

@@ -7,7 +7,11 @@
 qid16	readylists[TS_LEVELS+1];			/* Index of ready lists		*/
 //qid16	readylist;					/* Index of ready list		*/
 
-qid16 rt_readylist;
+// rt readylist which holds the rt ready processes
+// it adopts a round-robin policy between the processes
+// assumption: resched handles rt processes separately and executes them at prio TS_LEVELS
+
+qid16 rt_readylist;					/* Index of rt ready list 	*/
 
 /**
  * @return the corresponding queue id of this priority.
@@ -54,6 +58,13 @@ void ts_insert(pid32 pid) {
 	//kprintf("\nTS Insert [%s] pid [%d]", prptr->prname, pid);
 }
 
+/* ayush edit */
+
+/* rt_insert
+ * this method checks if it is a TS_PROC then use ts_insert as before
+ * (I have assigned TS_PROC to both TS and higher system processes)
+ * else insert into rt_readylist 
+ */
 
 void rt_insert(pid32 pid) {
 
@@ -87,6 +98,8 @@ status	ready(
 	prptr->prstate = PR_READY;
 	// added for Lab2B
 	//insert(pid, readylist, prptr->prprio);
+	
+	// added for LAB3
 	rt_insert(pid);
 	resched();
 

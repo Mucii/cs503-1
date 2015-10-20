@@ -22,7 +22,11 @@ sid32	semcreate(
 		return SYSERR;
 	}
 	semtab[sem].scount = count;	/* Initialize table entry	*/
+	
+	/* ayush edit
+	 * added update of deadlock detection datastructure */
 
+	available[sem] = count;		/* Initialize number available	*/
 	restore(mask);
 	return sem;
 }

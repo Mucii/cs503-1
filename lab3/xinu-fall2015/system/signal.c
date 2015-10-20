@@ -23,8 +23,23 @@ syscall	signal(
 		restore(mask);
 		return SYSERR;
 	}
+
+	/* ayush edit 
+	 * added updates for deadlock detection data strcutres
+	 */
+
+	// reduce allocation
+	if(allocation[getpid()][sem] > 0) 
+		allocation[getpid()][sem]--;
+
 	if ((semptr->scount++) < 0) {	/* Release a waiting process */
+		
+		// reduce request
+		if(request[firstid(semptr->squeue)][sem] > 0)
+			request[firstid(semptr->squeue)][sem]--;
 		ready(dequeue(semptr->squeue));
+	} else {
+		available[sem]++;
 	}
 	restore(mask);
 	return OK;
