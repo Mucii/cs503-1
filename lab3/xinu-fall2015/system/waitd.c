@@ -115,7 +115,7 @@ syscall	waitd(
 	for(i = 2; i < NPROC; i++) {
 		if(isbadpid(i)) continue;
 		if(finish[i] == 0) {
-			kprintf("\nUnsafe to proceed with process %d!\n", i);	
+			//kprintf("\nUnsafe to proceed with process %d!\n", i);	
 			restore(mask);
 			return SYSERR;
 		}

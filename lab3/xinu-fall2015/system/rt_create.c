@@ -28,12 +28,13 @@ local int admission_control(int rt_period, int rt_comp) {
 	}
 
 	k++;
-	utilisation += (double)rt_comp / (double) rt_period;	
+	utilisation += (double)rt_comp / (double) rt_period;
+	// add slack factor
+	utilisation += rmsslk;
 	maxutilisation = k * (nthroot(2, k) - 1);
 
 	if(utilisation >= maxutilisation) {
-		kprintf("\nAC Test Fail!");
-
+		//kprintf("\nAC Test Fail!");
 		return SYSERR;
 	}
 	else 

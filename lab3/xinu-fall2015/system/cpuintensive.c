@@ -11,7 +11,7 @@ void cpuintensive() {
 	// added for Lab2B
 	int i, j;
 	int LOOP1 = 10;
-	int LOOP2 = 10000000;
+	int LOOP2 = 100000000;
 
 	struct procent *pr = &proctab[currpid];
 
