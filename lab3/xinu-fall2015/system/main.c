@@ -57,9 +57,10 @@ void test_deadlock() {
 	kprintf("\nStarting Processes\n");
 
 	resched_cntl(DEFER_START);
-	resume( create(mytestapp, 2048, 20, "SemProc1", 3, 'C', sem1, sem2));	
+	resume( create(mytestapp, 2048, 20, "SemProc1", 3, 'C', sem1, sem2));
+	resume( create(mytestapp2, 2048, 20,"SemProc2", 2, 'B', sem1));
 	resume( create(mytestapp, 2048, 20, "SemProc3", 3, 'A', sem2, sem3));
-	resume( create(mytestapp, 2048, 20, "SemProc4", 3, 'D', sem2, sem1));
+	resume( create(mytestapp, 2048, 20, "SemProc4", 3, 'D', sem3, sem1));
 	resched_cntl(DEFER_STOP);
 
 //	resume( create(mytestapp2, 2048, 20, "SemProc2", 3, 'B', sem1));

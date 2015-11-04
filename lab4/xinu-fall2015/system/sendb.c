@@ -47,9 +47,9 @@ syscall	sendb(
 				restore(mask);
 				return SYSERR;
 			}
-			prptr->prstate = PR_SND;
+			ptr->prstate = PR_SND;
 		} else {
-			prptr->prstate = PR_SNDI;
+			ptr->prstate = PR_SNDI;
 		}
 		
 		kprintf("\nPID: %d, Send Block.", currpid);
@@ -58,18 +58,21 @@ syscall	sendb(
 		ptr->prsndflag = TRUE;
 		resched();
 	}
-	// Note: timeout can happen only for PR_SND
 	
+	// Note: timeout can happen only for PR_SND
 	status ret = OK;
 	if (ptr->prsndflag) {
-		//kprintf("\nPID %d flag set", currpid);	
+		
 		ptr->prsndflag = FALSE;
 		ret = TIMEOUT;
 		prptr->prmsg = TIMEOUT;
+		kprintf("\nPID: %d, Send Timeout", currpid);
 	} else {
+		
 		prptr->prmsg = msg;		/* Deliver message		*/
 		kprintf("\nPID: %d, Send Complete", currpid);	
 	}
+	
 	prptr->prhasmsg = TRUE;		/* Indicate message is waiting	*/
 
 	/* If recipient waiting or in timed-wait make it ready */

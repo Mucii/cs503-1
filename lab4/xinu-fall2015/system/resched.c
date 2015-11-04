@@ -4,6 +4,21 @@
 
 struct	defer	Defer;
 
+void async_rec(struct procent *ptr) {
+
+	if(ptr->prhasmsg) {
+
+		// copy to buf
+		*(ptr->userbuf) = ptr->prmsg;
+
+		// execute callback
+		ptr->recvcb(ptr->prmsg);
+		ptr->prhasmsg = FALSE;
+		unblock();
+	}
+}
+
+
 /*------------------------------------------------------------------------
  *  resched  -  Reschedule processor to highest priority eligible process
  *------------------------------------------------------------------------
@@ -36,16 +51,16 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	}
 
 	/* Force context switch to highest priority ready process */
-
+	//kprintf("\nResched: Process %d", firstid(readylist));
 	currpid = dequeue(readylist);
-	//kprintf("\nResched: Process %d", currpid);
+	
 	ptnew = &proctab[currpid];
 	ptnew->prstate = PR_CURR;
 	preempt = QUANTUM;		/* Reset time slice for process	*/
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */
-
+	async_rec(ptold);
 	return;
 }
 
