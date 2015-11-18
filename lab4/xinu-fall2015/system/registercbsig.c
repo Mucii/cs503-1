@@ -15,5 +15,25 @@ syscall registercbsig(
 	)
 {
 	/* LAB4TODO */
+	intmask	mask;			/* Saved interrupt mask		*/
+	struct	procent *prptr;		/* Ptr to process' table entry	*/
+
+	mask = disable();
+	
+	prptr = &proctab[currpid];
+	if(sig == ARECV && (cb != NULL && prptr->arecvcb == NULL)) {
+		prptr->arecvcb = cb;
+		restore(mask);
+		return OK;
+	}
+		
+	if(sig == AALRM && (cb != NULL && prptr->alarmcb == NULL && optarg >= 0)) {
+		prptr->alarmcb = cb;
+		prptr->alrmtime = (myglobalclock + optarg);
+		restore(mask);
+		return OK;
+	}
+
+	restore(mask);
 	return SYSERR;
 }

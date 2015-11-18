@@ -23,6 +23,8 @@ syscall	sendb(
 		return SYSERR;
 	}
 
+	//kprintf("\nTime %d, PID: %d, maxwait %d",myglobalclock, currpid, maxwait);
+
 	prptr = &proctab[pid];
 	ptr = &proctab[currpid];
 	
@@ -43,7 +45,7 @@ syscall	sendb(
 		// if maxwait = 0 -> not inserted into sleepq,
 		// it can only be woken up by the receiving process */
 		if(maxwait > 0) {
-			if(insert(currpid, sleepq, maxwait) == SYSERR) {
+			if(insertd(currpid, sleepq, maxwait) == SYSERR) {
 				restore(mask);
 				return SYSERR;
 			}
@@ -52,7 +54,7 @@ syscall	sendb(
 			ptr->prstate = PR_SNDI;
 		}
 		
-		kprintf("\nPID: %d, Send Block.", currpid);
+		//kprintf("\nTime %d, PID: %d, maxwait %d Send Block.",myglobalclock, currpid, maxwait);
 		s_enqueue(currpid, sendlists[pid]);
 		ptr->prsndmsg = msg;
 		ptr->prsndflag = TRUE;
@@ -60,19 +62,17 @@ syscall	sendb(
 	}
 	
 	// Note: timeout can happen only for PR_SND
-	status ret = OK;
-	if (ptr->prsndflag) {
+
+	if (prptr->prstate == PR_FREE || ptr->prsndflag) {
 		
 		ptr->prsndflag = FALSE;
-		ret = TIMEOUT;
-		prptr->prmsg = TIMEOUT;
-		kprintf("\nPID: %d, Send Timeout", currpid);
-	} else {
-		
-		prptr->prmsg = msg;		/* Deliver message		*/
-		kprintf("\nPID: %d, Send Complete", currpid);	
-	}
+		restore(mask);
+		return TIMEOUT;
+	//	kprintf("\nTime %d, PID: %d, Send Timeout",  myglobalclock, currpid);
+	} 
 	
+	prptr->prmsg = msg;		/* Deliver message		*/
+	//kprintf("\nTime %d, PID: %d, Sent %d", myglobalclock, currpid, prptr->prmsg);	
 	prptr->prhasmsg = TRUE;		/* Indicate message is waiting	*/
 
 	/* If recipient waiting or in timed-wait make it ready */
@@ -85,5 +85,5 @@ syscall	sendb(
 	}
 
 	restore(mask);		/* Restore interrupts */
-	return ret;
+	return OK;
 }

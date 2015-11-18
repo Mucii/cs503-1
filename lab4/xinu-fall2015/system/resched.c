@@ -6,11 +6,10 @@ struct	defer	Defer;
 
 void async_rec(struct procent *ptr) {
 
-	if(ptr->prhasmsg) {
-
+	if(ptr->prhasmsg && ptr->recvcb != NULL) {
+		
 		// copy to buf
 		*(ptr->userbuf) = ptr->prmsg;
-
 		// execute callback
 		ptr->recvcb(ptr->prmsg);
 		ptr->prhasmsg = FALSE;
@@ -18,6 +17,20 @@ void async_rec(struct procent *ptr) {
 	}
 }
 
+void sighandler(struct procent *ptr) {
+
+	if(ptr->prhasmsg && ptr->arecvcb != NULL) {
+
+		ptr->arecvcb();
+
+	} else if (ptr->alarmcb != NULL) {
+		if(myglobalclock >= ptr->alrmtime) {
+
+			ptr->alarmcb();
+			ptr->alarmcb = NULL;
+		}
+	}
+}
 
 /*------------------------------------------------------------------------
  *  resched  -  Reschedule processor to highest priority eligible process
@@ -41,6 +54,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 
 	if (ptold->prstate == PR_CURR) {  /* Process remains eligible */
 		if (ptold->prprio > firstkey(readylist)) {
+			sighandler(ptold);
 			return;
 		}
 
@@ -51,7 +65,7 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	}
 
 	/* Force context switch to highest priority ready process */
-	//kprintf("\nResched: Process %d", firstid(readylist));
+	//kprintf("\nResched: Process %d time %d", firstid(readylist), myglobalclock);
 	currpid = dequeue(readylist);
 	
 	ptnew = &proctab[currpid];
@@ -60,6 +74,8 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */
+	// assuming both handlers cannot be registered at the same time
+	sighandler(ptold);
 	async_rec(ptold);
 	return;
 }

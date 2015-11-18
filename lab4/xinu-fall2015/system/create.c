@@ -55,10 +55,12 @@ pid32	create(
 	
 	/* ayush edit
 	 * for LAB4 */
-	prptr->prsndflag = FALSE;
-	
+	prptr->prsndflag = FALSE;	
 	prptr->recvcb = NULL;
 	prptr->userbuf = NULL;
+
+	prptr->arecvcb = NULL;
+	prptr->alarmcb = NULL;
 
 	/* Set up stdin, stdout, and stderr descriptors for the shell	*/
 	prptr->prdesc[0] = CONSOLE;

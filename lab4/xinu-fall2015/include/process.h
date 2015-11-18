@@ -59,9 +59,14 @@ struct procent {		/* Entry in the process table		*/
 	/* LAB4TODO */
 	umsg32  prsndmsg;	/* Message to be sent			*/
 	bool8   prsndflag;	/* Flag to determine validity of msg	*/
-
 	msgcb	recvcb;		/* Pointer to receiver callback		*/
-	umsg32 	*userbuf;	/* Pointer to the use space buffer	*/		
+	umsg32 	*userbuf;	/* Pointer to the use space buffer	*/
+
+	/* BONUS */
+	sigcb 	arecvcb;	/* Pointer to async receive callback	*/
+	uint32	alrmtime;	/* Time after which alram will ring	*/
+	sigcb	alarmcb;	/* Pointer to alarm call back		*/
+	
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

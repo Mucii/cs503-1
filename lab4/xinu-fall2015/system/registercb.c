@@ -20,6 +20,10 @@ syscall registercb(
 	mask = disable();
 	
 	prptr = &proctab[currpid];
+	// error if
+	// 1. already registered
+	// 2. NULL callback
+	// 3. NULL buffer
 	if(prptr->recvcb != NULL || cb == NULL || buf == NULL) {
 		restore(mask);
 		return SYSERR;
