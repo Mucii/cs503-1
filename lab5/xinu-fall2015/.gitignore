@@ -1,0 +1,16 @@
+# This file is to be copied into each lab's code directory
+# after adding all of their initial files into repository.
+
+*.xbin
+*.bin
+compile/.vers_num
+compile/version
+config/config
+compile/xinu
+compile/xinu.map
+config/lex.yy.c
+config/y.tab.c
+include/conf.h
+system/conf.c
+rdserver/rdserver
+rdserver/backing_store
