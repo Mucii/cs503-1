@@ -35,6 +35,7 @@ typedef struct {
 	unsigned int pt_base	: 20;		/* location of page?		*/
 } pt_t;
 
+#define NENTRIES	1024
 
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
@@ -55,12 +56,12 @@ typedef struct {
 
 /* page directories related definition */
 extern pt_t *globalpt[4];
-int ptinit();
+int globalptinit();
 pd_t * getpdir();
 int freepdir(pd_t *pd);
 pt_t * getptable();
 int freeptable(pt_t *pt);
-
+int invalidate_page(int addr);
 
 
 /* Frame and Inverted page table related definitions */
@@ -70,6 +71,17 @@ int freeptable(pt_t *pt);
 #define FRAME_PD	2
 #define FRAME_PT	3
 #define FRAME_BS	4
+
+#define isbadfid(fid) 		(((fid) >= NFRAMES) || ((fid) < 0))
+
+#define FRAME2ADDR(fid)		((FRAME0 + (fid)) * NBPG)
+#define FRAME2PGNO(fid)		(FRAME0 + (fid))
+#define ADDR2FRAME(addr)	(((uint32)(addr) / NBPG) - FRAME0)
+#define ADDR2FRPTR(addr) 	(&frametab[ADDR2FRAME((addr))])
+
+// removing lower 12 bits to form base address
+#define VADDR2PNO(addr)		((uint32)(addr) / NBPG)
+#define PNO2VADDR(pno)		((uint32)(vpno) * NBPG)
 
 typedef struct _frame {
 	uint32		fid;		/* frame index */
@@ -90,6 +102,12 @@ int frameinit();
 frame_t *getframe();
 int freeframe(frame_t *frame);
 int decrementref(frame_t *frame);
+
+
+/* paging register control functions */
+void enablepaging();
+void setPDBR(unsigned long addr);
+
 
 #endif // __PAGING_H_
 

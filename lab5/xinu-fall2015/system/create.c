@@ -99,7 +99,11 @@ pid32	create(
 
 	/* create a new page directory for the process */
 	// TODO
-	// prptr->pd = pd_create();
+	prptr->pd = getpdir();
+	if(prptr->pd == NULL) {
+		restore(mask);
+		return SYSERR;
+	}
 	restore(mask);
 	return pid;
 }

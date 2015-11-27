@@ -1,7 +1,7 @@
 /* process.h - isbadpid */
 
 /* Maximum number of processes in the system */
-
+#include<paging.h>
 
 #ifndef NPROC
 #define	NPROC		8
@@ -57,6 +57,7 @@ struct procent {		/* Entry in the process table		*/
 	/* ayush edit
 	 * added for lab5
 	 */
+	pd_t *pd;		/* pointer to page table directpory	*/
 	bsd_t bsid;		/* backing store for a process		*/
 	uint32 hsize;		/* number for pages in virtual heap	*/
 	
