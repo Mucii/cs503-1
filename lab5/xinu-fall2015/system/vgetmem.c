@@ -14,7 +14,6 @@ char  	*vgetmem(
 	/* LAB5TODO */
 	intmask	mask;			/* Saved interrupt mask		*/
 	struct	memblk	*prev, *curr, *leftover;
-	struct procent *ptr;
 
 	mask = disable();
 	if (nbytes == 0) {

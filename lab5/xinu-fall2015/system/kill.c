@@ -20,6 +20,9 @@ syscall	kill(
 		restore(mask);
 		return SYSERR;
 	}
+	
+	// clean all paging related information
+	cleanslate();
 
 	if (--prcount <= 1) {		/* Last user process completes	*/
 		xdone();

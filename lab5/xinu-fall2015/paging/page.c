@@ -100,18 +100,31 @@ pd_t *getpdir() {
 		pd[i].pd_avail 	= 1;
 		// TODO check whether this conversion will be needed or direct address
 		pd[i].pd_base 	= VADDR2PNO((uint32) globalpt[i]);
+		kprintf("\nPID %d, GPT[%d] @ %d", currpid, i, pd[i].pd_base);
+
 	}
 	// TODO check whether this mapping is correct
 	// add page table for dev memory page table
 	pd[DEVMEM].pd_pres 	= 1;
 	pd[DEVMEM].pd_avail 	= 1;
 	pd[DEVMEM].pd_base 	= VADDR2PNO((uint32) devpt);
-
+	kprintf("\nPID %d, GPT[dev] @ %d", currpid, pd[DEVMEM].pd_base);
 	return pd;
 }
 
 int freepdir(pd_t *pd) {
 	// TODO
+	
+	kprintf("\nPID %d, Free Dir called", currpid);	
+	int i;
+
+	for(i = 4; i < NENTRIES; i++) {
+		
+		if(pd[i].pd_pres && i != DEVMEM) {
+			freeptable((pt_t *)(&pd[i]));
+		}
+	}
+	freeframe(ADDR2FRPTR(pd));
 	return OK;	
 }
 
@@ -151,14 +164,6 @@ int freeptable(pt_t *pt) {
 	freeframe(ADDR2FRPTR(pt));
 	return OK;
 }
-
-int invalidate_page(int addr) {
-
-	// TODO
-	return SYSERR;
-}
-
-
 
 
 

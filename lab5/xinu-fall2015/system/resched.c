@@ -41,6 +41,12 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	ptnew = &proctab[currpid];
 	ptnew->prstate = PR_CURR;
 	preempt = QUANTUM;		/* Reset time slice for process	*/
+	
+	/* set cr3 for the new process */
+	kprintf("\nPID %d, Page directory @ 0x%08x at page number : %d loaded.. ", currpid, ptnew->pd, VADDR2PNO(ptnew->pd));
+	
+	setPDBR(VADDR2PNO(ptnew->pd));
+
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */

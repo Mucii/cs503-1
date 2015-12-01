@@ -31,7 +31,7 @@ bsd_t	allocate_bs (
 			/* Successfully opened, allocate it */
 			bstab[i].isallocated = TRUE;
 			bstab[i].usecount = 0;
-
+			
 			restore(mask);
 			return i;
 		}

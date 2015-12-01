@@ -149,6 +149,13 @@ static	void	sysinit()
 		prptr->prname[0] = NULLCH;
 		prptr->prstkbase = NULL;
 		prptr->prprio = 0;
+		
+		/* added for LAB5 
+		 * ayush edit */
+		prptr->pd = NULL;
+		prptr->bsid = -1;
+		prptr->hsize = 0;
+		prptr->vpno = 0;
 	}
 
 	/* Initialize the Null process entry */
@@ -196,6 +203,26 @@ static	void	sysinit()
 static void initialize_paging()
 {
 	/* LAB5TODO */
+
+	/* initialize frames */
+	frameinit();
+
+	/* initialize backing store map */
+	init_bsmap();
+	
+	/* create global page tables */
+	globalptinit();
+
+	/* Add page directory information for NULL process */
+	proctab[NULLPROC].pd = getpdir();
+
+
+	/* install page fault ISR */
+
+	kprintf("\nPaging Enabled");
+	setPDBR(VADDR2PNO(proctab[NULLPROC].pd));
+	
+	enablepaging();
 	return;
 }
 

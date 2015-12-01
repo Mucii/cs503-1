@@ -40,6 +40,8 @@ typedef struct {
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
 
+#define VPAGE0		4096	/* starting virtual page no of a process	*/
+
 #ifndef NFRAMES
 #define NFRAMES		3072	/* number of frames		*/
 #endif
@@ -61,8 +63,6 @@ pd_t * getpdir();
 int freepdir(pd_t *pd);
 pt_t * getptable();
 int freeptable(pt_t *pt);
-int invalidate_page(int addr);
-
 
 /* Frame and Inverted page table related definitions */
 #define FRAME_FREE	1
@@ -81,7 +81,7 @@ int invalidate_page(int addr);
 
 // removing lower 12 bits to form base address
 #define VADDR2PNO(addr)		((uint32)(addr) / NBPG)
-#define PNO2VADDR(pno)		((uint32)(vpno) * NBPG)
+#define PNO2VADDR(vpno)		((uint32)(vpno) * NBPG)
 
 typedef struct _frame {
 	uint32		fid;		/* frame index */
@@ -104,9 +104,43 @@ int freeframe(frame_t *frame);
 int decrementref(frame_t *frame);
 
 
+/* backing store map related definitions */
+#ifndef MAX_BS_ENTRIES
+#define MAX_BS_ENTRIES MAX_ID - MIN_ID + 1
+#endif
+
+#define validbspage(bsid, pageno) ((pageno >= bsmap[bsid].vpageno) && pageno < (bsmap[bsid].vpageno + bsmap[bsid].npages)) 
+
+#define isbadbsid(bsid) (bsid < MIN_ID || bsid > MAX_ID)
+
+typedef struct _bsmap_t {
+
+	pid32	 pid;
+	uint32	 vpageno;
+	uint32	 npages;
+	byte	 allocated;
+	
+} bsmap_t;
+
+typedef struct _bsoffset {
+	bsd_t bsid;
+	uint32 offset;
+} bsoff_t;
+
+extern bsmap_t bsmap[MAX_BS_ENTRIES];
+
+void getbsmapping(pid32 pid, uint32 vpageno, bsoff_t *bsoff);
+int init_bsmap();
+int remove_bsmapping(bsd_t bsid);
+int add_bsmapping(bsd_t bsid, pid32 pid, uint32 vpageno, uint32 npages);
+
+
+
 /* paging register control functions */
 void enablepaging();
 void setPDBR(unsigned long addr);
+
+syscall cleanslate();
 
 
 #endif // __PAGING_H_

@@ -113,16 +113,22 @@ pid32	vcreate(
 		return SYSERR;
 	}
 
-	/* Add mapping between this store and process */
-
 	/* update process control block */
 	prptr->bsid  = bsid;
 	prptr->hsize = hsize;
+	prptr->vpno  = VPAGE0; 
+
+	/* Add mapping between this store and process */
+	if(add_bsmapping(bsid, pid, prptr->vpno, hsize) == SYSERR) {
+		kprintf("\nBacking store cannot be mapped..");
+		restore(mask);
+		return SYSERR;
+	}
 
 	/* initiliaze virtual memory heap
 	* first item maps to the 1st page in the backing store */
 	struct memblk *memptr = &vmemlist[pid];
-	memptr->mnext = (struct meblock *) (4096 * NBPG);
+	memptr->mnext = (struct memblk *) PNO2VADDR(prptr->vpno);
 	memptr->mlength = hsize * NBPG;
 
 	/* write mnext and mlen to first page of backing store
@@ -130,16 +136,13 @@ pid32	vcreate(
 	 * so that when process starts working it takes correct address */
 	
 	// TODO get address of page for first page of backing store
-	struct memblk *memblock = (struct memblk *) NBPG;
+	struct memblk *memblock = (struct memblk *) PNO2VADDR(prptr->vpno);
 	memblock->mnext = NULL;
 	memblock->mlength = hsize * NBPG;
 
 	restore(mask);
 	return pid;
-	
 
-
-	return SYSERR;
 }
 
 // ayush edit

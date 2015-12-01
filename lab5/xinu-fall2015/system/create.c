@@ -120,7 +120,7 @@ local	pid32	newpid(void) {
 	//static	pid32 nextpid = 1;	/* Position in table to try or	*/
 					/*   one beyond end of table	*/
 
-	pid32 nextpid = 0;
+	pid32 nextpid = 1;
 	/* Check all NPROC slots */
 
 	for (i = 0; i < NPROC; i++) {
