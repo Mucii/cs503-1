@@ -117,7 +117,7 @@ pid32	vcreate(
 	prptr->bsid  = bsid;
 	prptr->hsize = hsize;
 	prptr->vpno  = VPAGE0; 
-
+	prptr->bsstart = 1;
 	/* Add mapping between this store and process */
 	if(add_bsmapping(bsid, pid, prptr->vpno, hsize) == SYSERR) {
 		kprintf("\nBacking store cannot be mapped..");
@@ -125,20 +125,12 @@ pid32	vcreate(
 		return SYSERR;
 	}
 
+	kprintf("\nPID %d BS %d allocated.", pid, bsid);
 	/* initiliaze virtual memory heap
 	* first item maps to the 1st page in the backing store */
 	struct memblk *memptr = &vmemlist[pid];
 	memptr->mnext = (struct memblk *) PNO2VADDR(prptr->vpno);
 	memptr->mlength = hsize * NBPG;
-
-	/* write mnext and mlen to first page of backing store
-	 * since process has not started page fault cannot work
-	 * so that when process starts working it takes correct address */
-	
-	// TODO get address of page for first page of backing store
-	struct memblk *memblock = (struct memblk *) PNO2VADDR(prptr->vpno);
-	memblock->mnext = NULL;
-	memblock->mlength = hsize * NBPG;
 
 	restore(mask);
 	return pid;

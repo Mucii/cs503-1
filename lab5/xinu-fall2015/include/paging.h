@@ -55,6 +55,7 @@ typedef struct {
 #define MAX_ID		7		/* You get 8 mappings, 0 - 7 */
 #define MIN_ID		0
 
+#define PAGEFAULT_INT	14
 
 /* page directories related definition */
 extern pt_t *globalpt[4];
@@ -139,9 +140,23 @@ int add_bsmapping(bsd_t bsid, pid32 pid, uint32 vpageno, uint32 npages);
 /* paging register control functions */
 void enablepaging();
 void setPDBR(unsigned long addr);
+unsigned long getpfaddr();
 
 syscall cleanslate();
 
+
+typedef struct vaddr_ {
+
+	unsigned int offset  :  12;		/* lower 12 bits : offset 	*/
+	unsigned int ptindex :  10;		/* next 10 bits  : ptindex 	*/
+	unsigned int pdindex :  10;		/* high 10 bits	 : pdindex	*/
+
+} vaddr_t;
+
+/* Interrupt service routine functions */
+
+void pfisr();
+int isroutine();
 
 #endif // __PAGING_H_
 

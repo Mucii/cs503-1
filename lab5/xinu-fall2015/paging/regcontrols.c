@@ -18,7 +18,21 @@ unsigned long readcr0() {
 	return temp;
 }
 
+unsigned long getpfaddr() {
 
+	intmask mask;
+	unsigned long temp;
+	mask = disable();
+
+	asm("pushl %eax");
+	asm("movl %cr2, %eax");
+	asm("movl %eax, var");
+	asm("popl %eax");
+
+	temp = var;
+	restore(mask);
+	return temp;
+}
 void writecr0(unsigned long n) {
 
 	intmask mask;

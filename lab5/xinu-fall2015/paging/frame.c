@@ -17,6 +17,64 @@ int decrementref(frame_t *frame) {
 	return OK;
 }
 
+int invalidate(frame_t *frame) {
+
+	/* no checks - internal function */
+	pd_t *pd;
+	pt_t *pt;
+	int dirty = 0, i, j;
+
+
+	if(isbadpid(frame->pid)) return dirty;
+	
+	pd = proctab[frame->pid].pd;
+
+	/* get virtual address of page being replaced */
+	vaddr_t *addr = (vaddr_t *) PNO2VADDR(frame->vpagenum);
+
+	i = addr->pdindex;
+	j = addr->ptindex;
+
+	if(pd[i].pd_pres) {
+		pt = (pt_t *) PNO2VADDR(pd[i].pd_base);
+		if(pt[j].pt_pres) {
+
+			dirty = pt[j].pt_dirty;
+			// zero out the page table entry
+			pt[j].pt_pres 	= 0;
+			pt[j].pt_write	= 0;
+			pt[j].pt_user	= 0;
+			pt[j].pt_pwt	= 0;
+			pt[j].pt_pcd 	= 0;
+			pt[j].pt_acc 	= 0;
+			pt[j].pt_dirty 	= 0;
+			pt[j].pt_mbz 	= 0;
+			pt[j].pt_global = 0;
+			pt[j].pt_avail 	= 0;
+			pt[j].pt_base 	= 0;
+				
+			// decrease reference count of corresponding PT
+			frame_t *fr = ADDR2FRPTR(pt);
+			decrementref(fr);
+
+			// this frame might get freed as a result
+			// if freed pd needs to be updated
+			if(fr->status == FRAME_FREE) {
+				pd[i].pd_pres = 0;
+				
+			}
+			if(frame->pid == currpid) {
+				// flush TLB
+				// TODO check whether to replace with 'invlpg' 
+				setPDBR(VADDR2PNO(pd));
+			}
+		}
+	}
+
+	return dirty;
+}
+
+
 int isdirty(frame_t *frame) {
 
 	/* no checks - internal function */
@@ -65,7 +123,11 @@ int isdirty(frame_t *frame) {
 					// if freed pd needs to be updated
 					if(fr->status == FRAME_FREE)
 						pd[i].pd_pres = 0;
-
+					if(frame->pid == currpid) {
+						// flush TLB
+						// TODO check whether to replace with 'invlpg' 
+						setPDBR(VADDR2PNO(pd));
+			}
 					return dirty;
 				}
 			}
@@ -107,15 +169,27 @@ int freeframe(frame_t *frame) {
 	kprintf("\nPID %d, Free frame called for frame 0x%08x", currpid, FRAME2ADDR(frame->fid));
 	
 	// write_back if a dirty frame mapped to backing store
-	if(frame->type == FRAME_BS && isdirty(frame)) {
+	if(frame->type == FRAME_BS && invalidate(frame)) {
 
 		bsoff_t bo;
 		getbsmapping(frame->pid, frame->vpagenum, &bo);
-		if(isbadbsid(bo.bsid))
+		if(isbadbsid(bo.bsid)) {
+			kprintf("\nBS not found for the frame. Aborting!");
+			kill(currpid);
+			return SYSERR;
+		}
+			
+
+		if(open_bs(bo.bsid) != bo.bsid) {
+			kill(currpid);
+			return SYSERR;
+		}
+		
+		if( SYSERR == write_bs((char *) FRAME2ADDR(frame->fid), bo.bsid, bo.offset)) {
+			kill(currpid);
 			return SYSERR;
 
-		if(open_bs(bo.bsid) == bo.bsid) 
-			write_bs((char *) FRAME2ADDR(frame->fid), bo.bsid, bo.offset);
+		}
 		close_bs(bo.bsid);
 	}
 

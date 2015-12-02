@@ -5,12 +5,12 @@
 
 void proc1() {
 
-	kprintf("\nHey wastup!!");
+	kprintf("\nPID %s Hey wastup!!", proctab[currpid].prname);
 }
 
 void proc2() {
 
-	kprintf("\nHey I am fine wat abt u!!");
+	kprintf("\nPID %s Hey I am fine wat abt u!!", proctab[currpid].prname);
 }
 
 void test_without_virtual() {
@@ -19,18 +19,29 @@ void test_without_virtual() {
 	resume (create(proc2, INITSTK, INITPRIO, "Proc2", 0,  NULL));
 }
 
+void test_virtual() {
+
+	resume (vcreate(proc1, INITSTK, 100, INITPRIO, "VProc1", 0,  NULL));
+
+}
 process	main(void)
 {
 	/* Start the network */
 	/* DO NOT REMOVE OR COMMENT THIS CALL */
-	//netstart();
+	netstart();
 
 	/* Initialize the page server */
 	/* DO NOT REMOVE OR COMMENT THIS CALL */
-	//psinit();
+	psinit();
 
 	kprintf("=== Lab5 ===\n");
 
 	test_without_virtual();
+
+	test_virtual();
 	return OK;
 }
+
+
+
+

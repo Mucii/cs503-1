@@ -8,6 +8,20 @@ struct	defer	Defer;
  *  resched  -  Reschedule processor to highest priority eligible process
  *------------------------------------------------------------------------
  */
+
+void startbs(struct procent *prptr) {
+	/* write mnext and mlen to first page of backing store
+	 * since process has not started page fault cannot work
+	 * so that when process starts working it takes correct address */
+	
+	if(prptr->bsstart == 0) return;
+
+	struct memblk *memblock = (struct memblk *) PNO2VADDR(prptr->vpno);
+	memblock->mnext = NULL;
+	memblock->mlength = prptr->hsize * NBPG;
+	prptr->bsstart = 0;
+}
+
 void	resched(void)		/* Assumes interrupts are disabled	*/
 {
 	struct procent *ptold;	/* Ptr to table entry for old process	*/
@@ -43,10 +57,12 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	preempt = QUANTUM;		/* Reset time slice for process	*/
 	
 	/* set cr3 for the new process */
+	
 	kprintf("\nPID %d, Page directory @ 0x%08x at page number : %d loaded.. ", currpid, ptnew->pd, VADDR2PNO(ptnew->pd));
 	
 	setPDBR(VADDR2PNO(ptnew->pd));
 
+	startbs(ptnew);
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */

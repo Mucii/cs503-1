@@ -100,7 +100,7 @@ pd_t *getpdir() {
 		pd[i].pd_avail 	= 1;
 		// TODO check whether this conversion will be needed or direct address
 		pd[i].pd_base 	= VADDR2PNO((uint32) globalpt[i]);
-		kprintf("\nPID %d, GPT[%d] @ %d", currpid, i, pd[i].pd_base);
+		//kprintf("\nPID %d, GPT[%d] @ %d", currpid, i, pd[i].pd_base);
 
 	}
 	// TODO check whether this mapping is correct
@@ -108,7 +108,7 @@ pd_t *getpdir() {
 	pd[DEVMEM].pd_pres 	= 1;
 	pd[DEVMEM].pd_avail 	= 1;
 	pd[DEVMEM].pd_base 	= VADDR2PNO((uint32) devpt);
-	kprintf("\nPID %d, GPT[dev] @ %d", currpid, pd[DEVMEM].pd_base);
+	//kprintf("\nPID %d, GPT[dev] @ %d", currpid, pd[DEVMEM].pd_base);
 	return pd;
 }
 
@@ -142,10 +142,10 @@ pt_t *getptable() {
 
 	pt = (pt_t *) FRAME2ADDR(frame->fid);
 	
-	// initialize page directory entries
+	// initialize page table entries
 	for(i = 0; i < NENTRIES; i++) {
 		pt[i].pt_pres 	= 0;
-		pt[i].pt_write	= 0;
+		pt[i].pt_write	= 1;
 		pt[i].pt_user	= 0;
 		pt[i].pt_pwt	= 0;
 		pt[i].pt_pcd 	= 0;

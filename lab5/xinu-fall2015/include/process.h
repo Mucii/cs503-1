@@ -61,6 +61,7 @@ struct procent {		/* Entry in the process table		*/
 	bsd_t bsid;		/* backing store for a process		*/
 	uint32 hsize;		/* number for pages in virtual heap	*/
 	uint32 vpno;		/* starting virtual page no 		*/
+	byte bsstart;		/* whether 1st BS page is written	*/
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

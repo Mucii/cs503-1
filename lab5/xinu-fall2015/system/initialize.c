@@ -155,7 +155,8 @@ static	void	sysinit()
 		prptr->pd = NULL;
 		prptr->bsid = -1;
 		prptr->hsize = 0;
-		prptr->vpno = 0;
+		prptr->vpno = -1;
+		prptr->bsstart = 0;
 	}
 
 	/* Initialize the Null process entry */
@@ -168,7 +169,7 @@ static	void	sysinit()
 	prptr->prstklen = NULLSTK;
 	prptr->prstkptr = 0;
 	currpid = NULLPROC;
-
+	
 	/* Initialize semaphores */
 
 	for (i = 0; i < NSEM; i++) {
@@ -218,10 +219,14 @@ static void initialize_paging()
 
 
 	/* install page fault ISR */
+	set_evec(PAGEFAULT_INT, (uint32) pfisr);
 
-	kprintf("\nPaging Enabled");
+	/* set cr3 register to null proc page directory */
 	setPDBR(VADDR2PNO(proctab[NULLPROC].pd));
-	
+
+	/* Enable Paging */
+	kprintf("\nPaging Enabled");
+
 	enablepaging();
 	return;
 }
