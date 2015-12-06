@@ -21,6 +21,7 @@ syscall	read(
 		restore(mask);
 		return SYSERR;
 	}
+	//kprintf("\nPID %d Inside Read buf 0x%08x count = %d ", currpid, buffer, count);
 	devptr = (struct dentry *) &devtab[descrp];
 	retval = (*devptr->dvread) (devptr, buffer, count);
 	restore(mask);

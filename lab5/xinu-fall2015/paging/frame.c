@@ -8,6 +8,10 @@ frame_t *fifohead;
 
 int decrementref(frame_t *frame) {
 
+	kprintf("\nPID %d DECR Frame %d type %d numref %d", 
+		currpid, frame->fid, frame->type, frame->numref);
+
+
 	if(frame->type != FRAME_PT)
 		return SYSERR;
 	frame->numref--;
@@ -24,22 +28,30 @@ int invalidate(frame_t *frame) {
 	pt_t *pt;
 	int dirty = 0, i, j;
 
+	kprintf("\nPID %d INVL Invalidate frame %d pid %d vpno %d", 
+		currpid, frame->fid, frame->pid, frame->vpagenum);
 
 	if(isbadpid(frame->pid)) return dirty;
 	
 	pd = proctab[frame->pid].pd;
-
+	
 	/* get virtual address of page being replaced */
-	vaddr_t *addr = (vaddr_t *) PNO2VADDR(frame->vpagenum);
+	uint32 a =  PNO2VADDR(frame->vpagenum);
+	vaddr_t *addr = (vaddr_t *) (&a);	
 
 	i = addr->pdindex;
 	j = addr->ptindex;
+	
+	//kprintf("\nPID %d INVL pdi %d pti %d offset %d ", currpid, i, j, addr->offset);
 
 	if(pd[i].pd_pres) {
 		pt = (pt_t *) PNO2VADDR(pd[i].pd_base);
 		if(pt[j].pt_pres) {
-
+			
+			
 			dirty = pt[j].pt_dirty;
+			kprintf("\nPID %d INVL Page entry found. Dirty : %d ", currpid, dirty);
+			
 			// zero out the page table entry
 			pt[j].pt_pres 	= 0;
 			pt[j].pt_write	= 0;
@@ -68,6 +80,10 @@ int invalidate(frame_t *frame) {
 				// TODO check whether to replace with 'invlpg' 
 				setPDBR(VADDR2PNO(pd));
 			}
+		} else {
+
+			kprintf("\nPID %d INVL Page entry not found for the address", currpid);
+
 		}
 	}
 
@@ -147,17 +163,26 @@ void cleanupfifo() {
 	
 	while(cur != NULL) {
 		if(cur->status == FRAME_FREE) {
+			
 			if(cur == fifohead) {
 				fifohead = fifohead->next;
+				
 			} else {
 				prev->next = cur->next;
 			}
-			cur = cur->next;
+
+			kprintf("\nPID %d, Freed frame 0x%08x", currpid, FRAME2ADDR(cur->fid));
+			cur->next = NULL;
+			return;
 		} else {
 			prev = cur;
-			cur = cur->next;
+			cur = cur->next;		
 		}
+
 	}
+
+	kprintf("\nPID %d, CLEAN: Could not free the frame!!!", currpid);
+
 }
 
 
@@ -170,6 +195,8 @@ int freeframe(frame_t *frame) {
 	
 	// write_back if a dirty frame mapped to backing store
 	if(frame->type == FRAME_BS && invalidate(frame)) {
+		
+		kprintf("\nPID %d, Frame @ 0x%08x was dirty", currpid, FRAME2ADDR(frame->fid));
 
 		bsoff_t bo;
 		getbsmapping(frame->pid, frame->vpagenum, &bo);
@@ -178,19 +205,17 @@ int freeframe(frame_t *frame) {
 			kill(currpid);
 			return SYSERR;
 		}
-			
-
-		if(open_bs(bo.bsid) != bo.bsid) {
-			kill(currpid);
-			return SYSERR;
-		}
-		
 		if( SYSERR == write_bs((char *) FRAME2ADDR(frame->fid), bo.bsid, bo.offset)) {
 			kill(currpid);
 			return SYSERR;
 
 		}
-		close_bs(bo.bsid);
+		kprintf("\nPID %d, Frame @ 0x%08x was written back to BS %d offset %d ", currpid, FRAME2ADDR(frame->fid), bo.bsid, bo.offset);
+
+	}
+	
+	if(frame->type == FRAME_PT) {
+		hook_ptable_delete(frame->fid);
 	}
 
 	// update frame entry
@@ -207,25 +232,24 @@ int freeframe(frame_t *frame) {
 	 * have to edit for bonus problem TODO */
 	cleanupfifo();
 	
-	frame->next = NULL;
-
 	return OK;
 }
 
 frame_t *fiforeplace() {
 
-	kprintf("\nFrame replacement called..");
 	frame_t *prev, *cur;
 	
 	prev = NULL;
 	cur = fifohead;
 
 	// TODO check implementation
-	// TODO whether write back page here
 	while(cur) {
 		if(cur->type == FRAME_BS) {	
+			//kprintf("\nPID %d FRPL removing frame %d", currpid, cur->fid);
 			
-			// free frame
+			/* add hook */
+			hook_pswap_out(cur->vpagenum, cur->fid);
+
 			freeframe(cur);
 			return cur;
 		}
@@ -241,7 +265,7 @@ frame_t *removeframe() {
 
 	int i = 0;
 	frame_t *frame;
-	kprintf("\nPID %d Frame removal called..", currpid);
+	kprintf("\nPID %d Get Frame called..", currpid);
 	while(i < NFRAMES) {
 		frame = &frametab[i];
 		if(frame->status == FRAME_FREE)
@@ -256,7 +280,6 @@ frame_t *removeframe() {
 frame_t *getframe() {
 
 	frame_t *frame, *iter;
-	kprintf("\nPID %d Get Frame called..", currpid);
 	frame = removeframe();
 	if(frame == NULL) {
 		return (frame_t *) NULL;
@@ -281,6 +304,8 @@ frame_t *getframe() {
 			iter = iter->next;
 		iter->next = frame;
 	}
+	kprintf("\nPID %d, Allocated frame 0x%08x", currpid, FRAME2ADDR(frame->fid));
+
 	return frame;
 
 }
@@ -322,7 +347,7 @@ syscall cleanslate() {
 	for(i = 0; i < NFRAMES; i++) {
 
 		if(frametab[i].pid == currpid && frametab[i].type == FRAME_BS) {
-			//freeframe(&frametab[i]);
+			freeframe(&frametab[i]);
 		}	
 	}	
 

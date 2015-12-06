@@ -2,16 +2,19 @@
 
 /* calls the C funtion isroutine to handle the interrupt */
 	.text
-err:	.long	
+err:	.long 0	
 	.globl pfisr, err
 
 pfisr:
 	cli
 	popl err
+	 
 	pushfl
 	pushal
+	
 	call isroutine
+	
 	popal
 	popfl
-	sti
+	sti	
 	iret

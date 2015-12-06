@@ -18,7 +18,7 @@
 // ayush edit
 // port numbers: 33680 ->  33689
 #ifndef	RD_SERVER_PORT
-#define	RD_SERVER_PORT	33680
+#define	RD_SERVER_PORT	33682
 #endif
 
 #ifndef	RD_LOC_PORT

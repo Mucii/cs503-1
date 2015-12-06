@@ -97,13 +97,16 @@ pid32	create(
 	*--saddr = 0;			/* %edi */
 	*pushsp = (unsigned long) (prptr->prstkptr = (char *)saddr);
 
-	/* create a new page directory for the process */
+	/* make page directory of NULL process same as for the process */
 	// TODO
 	prptr->pd = getpdir();
 	if(prptr->pd == NULL) {
 		restore(mask);
 		return SYSERR;
+	
 	}
+	
+
 	restore(mask);
 	return pid;
 }

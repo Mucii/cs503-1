@@ -30,6 +30,8 @@ struct memblk vmemlist[NPROC];	/* Virtual memory list for each process */
 int	prcount;		/* Total number of live processes	*/
 pid32	currpid;		/* ID of currently executing process	*/
 
+uint32	numfaults;		/* total number of page faults		*/
+
 bool8   PAGE_SERVER_STATUS;    /* Indicate the status of the page server */
 sid32   bs_init_sem;
 /*------------------------------------------------------------------------
@@ -203,7 +205,8 @@ static	void	sysinit()
 
 static void initialize_paging()
 {
-	/* LAB5TODO */
+	/* set page fault counts to 0 */
+	numfaults = 0;
 
 	/* initialize frames */
 	frameinit();

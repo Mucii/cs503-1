@@ -43,7 +43,7 @@ typedef struct {
 #define VPAGE0		4096	/* starting virtual page no of a process	*/
 
 #ifndef NFRAMES
-#define NFRAMES		3072	/* number of frames		*/
+#define NFRAMES		20	/* number of frames 3072	*/
 #endif
 
 #define MAP_SHARED 1
@@ -158,6 +158,7 @@ typedef struct vaddr_ {
 void pfisr();
 int isroutine();
 
+extern uint32 numfaults;
 #endif // __PAGING_H_
 
 

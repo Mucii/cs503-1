@@ -29,7 +29,7 @@ int globalptinit() {
 			pt[j].pt_dirty 	= 0;
 			pt[j].pt_mbz 	= 0;
 			pt[j].pt_global = 0;
-			pt[j].pt_avail 	= 0;
+			pt[j].pt_avail 	= 1;
 
 			/* identity mapping 
 			 * we have seen i page tables and then (j - 1) in the current page table
@@ -56,7 +56,7 @@ int globalptinit() {
 		pt[j].pt_dirty 	= 0;
 		pt[j].pt_mbz 	= 0;
 		pt[j].pt_global = 0;
-		pt[j].pt_avail 	= 0;
+		pt[j].pt_avail 	= 1;
 		pt[j].pt_base 	= DEVMEM * NENTRIES + j;
 	}
 
@@ -115,13 +115,13 @@ pd_t *getpdir() {
 int freepdir(pd_t *pd) {
 	// TODO
 	
-	kprintf("\nPID %d, Free Dir called", currpid);	
+	kprintf("\nPID %d Free Dir called", currpid);	
 	int i;
 
 	for(i = 4; i < NENTRIES; i++) {
 		
 		if(pd[i].pd_pres && i != DEVMEM) {
-			freeptable((pt_t *)(&pd[i]));
+			freeptable((pt_t *) PNO2VADDR(pd[i].pd_base));
 		}
 	}
 	freeframe(ADDR2FRPTR(pd));
@@ -156,10 +156,14 @@ pt_t *getptable() {
 		pt[i].pt_avail 	= 0;
 		pt[i].pt_base 	= 0;
 	}
+	/* add hook */
+	hook_ptable_create(frame->fid);
 	return pt;
 }
 
 int freeptable(pt_t *pt) {
+
+	kprintf("\nPID %d, freepagetable called for PT @ 0x%08x", currpid, pt);	
 
 	freeframe(ADDR2FRPTR(pt));
 	return OK;

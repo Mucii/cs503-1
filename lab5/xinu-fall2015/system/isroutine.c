@@ -22,9 +22,15 @@ syscall isroutine() {
 	unsigned long a = getpfaddr();
 	addr = (vaddr_t *) (&a);
 
-	kprintf("\nPID %d ISR: Page fault for address 0x%08x ", currpid, a);
+	/* get page directory */
 	ptr = &proctab[currpid];
 	pd = ptr->pd;
+
+	/* add hook */
+	hook_pfault((void *) a);
+	numfaults++;
+	
+	//kprintf("\nPID %d ISR: Page fault for address 0x%08x", currpid, a);
 
 	/* check whether valid mapping */
 	bsoff_t bs;
@@ -41,8 +47,10 @@ syscall isroutine() {
 	pdi = addr->pdindex;
 	pti = addr->ptindex;
 
+	//kprintf("\nPID %d ISR: pdi %d pti %d offset %d ", currpid, pdi, pti, addr->offset);
+	
 	/* if page table not present - create pt and fill entry */
-	if( !pd[pdi].pd_pres ) {
+	if( pd[pdi].pd_pres != 1) {
 		pt = getptable();
 		if( pt == NULL) {
 
@@ -63,15 +71,14 @@ syscall isroutine() {
 		pd[pdi].pd_mbz 		= 0;
 		pd[pdi].pd_fmb 		= 0;
 		pd[pdi].pd_global 	= 0;
-		pd[pdi].pd_avail 	= 0;
+		pd[pdi].pd_avail 	= 1;
 		pd[pdi].pd_base 	= VADDR2PNO((uint32) pt);
-		kprintf("\nPID %d ISR: Page Table allocated @ 0x%08x page number: %d", 
-			currpid, pt, VADDR2PNO(pt) );
+		//kprintf("\nPID %d ISR: Page Table allocated @ 0x%08x page number: %d", 
+		//	currpid, pt, VADDR2PNO(pt) );
+	} 
 
+	pt = (pt_t *) PNO2VADDR(pd[pdi].pd_base);	
 
-	} else {
-		pt = (pt_t *) PNO2VADDR(pd[pdi].pd_base);	
-	}
 
 	/* get a frame for the page */	
 	frame = getframe();
@@ -88,17 +95,16 @@ syscall isroutine() {
 	frame->type = FRAME_BS;
 	frame->vpagenum =  VADDR2PNO (a); 	/* faulted page num */
 	frame->pid = currpid;
-	/* read from backing store */
-	if(bs.bsid != open_bs(bs.bsid)) {
-
-		kprintf("\nPID %d ISR: Backing store cannot be opened!", 
-				currpid);
-		kill(currpid);
-		restore(mask);
-		return SYSERR;
-	}
+	/* update page table entry */
+	pt[pti].pt_base  = FRAME2PGNO(frame->fid);
+	pt[pti].pt_pres  = 1;
+	pt[pti].pt_write = 1;
+	pt[pti].pt_avail = 1;
 	
-	 if( read_bs((char *)FRAME2ADDR(frame->fid), bs.bsid, bs.offset) == SYSERR) {
+
+	/* read from backing store */
+	//kprintf("\nPID %d ISR: Reached[1] bsid %d offset %d", currpid, bs.bsid, bs.offset);
+	if( read_bs((char *)(FRAME2ADDR(frame->fid)), bs.bsid, bs.offset) == SYSERR) {
 		kprintf("\nPID %d ISR: Backing store %d page no %d cannot be read!", 
 				currpid, bs.bsid, bs.offset);
 		kill(currpid);
@@ -106,17 +112,16 @@ syscall isroutine() {
 		return SYSERR;
 	 }
 
-	/* update page table entry */
-	pt[pti].pt_base  = FRAME2PGNO(frame->fid);
-	pt[pti].pt_pres  = 1;
-	pt[pti].pt_write = 1;
-
+//	close_bs(bs.bsid);
 	/* increase numref for the frame of PT */
+
 	frame = ADDR2FRPTR(pt);
 	frame->numref++;
 
 	/* set the pdbr */
 	setPDBR(VADDR2PNO(pd));
+	
+	kprintf("\nPID %d ISR: All Done :) ", currpid);
 
 	restore(mask);
 	return OK;

@@ -9,18 +9,7 @@ struct	defer	Defer;
  *------------------------------------------------------------------------
  */
 
-void startbs(struct procent *prptr) {
-	/* write mnext and mlen to first page of backing store
-	 * since process has not started page fault cannot work
-	 * so that when process starts working it takes correct address */
-	
-	if(prptr->bsstart == 0) return;
 
-	struct memblk *memblock = (struct memblk *) PNO2VADDR(prptr->vpno);
-	memblock->mnext = NULL;
-	memblock->mlength = prptr->hsize * NBPG;
-	prptr->bsstart = 0;
-}
 
 void	resched(void)		/* Assumes interrupts are disabled	*/
 {
@@ -58,11 +47,10 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	
 	/* set cr3 for the new process */
 	
-	kprintf("\nPID %d, Page directory @ 0x%08x at page number : %d loaded.. ", currpid, ptnew->pd, VADDR2PNO(ptnew->pd));
+	//kprintf("\nPID %d, Page directory @ 0x%08x at page number : %d loaded.. ", currpid, ptnew->pd, VADDR2PNO(ptnew->pd));
 	
 	setPDBR(VADDR2PNO(ptnew->pd));
 
-	startbs(ptnew);
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);
 
 	/* Old process returns here when resumed */

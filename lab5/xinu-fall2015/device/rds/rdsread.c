@@ -41,7 +41,6 @@ devcall	rdsread (
 		}
 		bptr = bptr->rd_next;
 	}
-
 	/* Search the request list for most recent occurrence of block */
 
 	bptr = rdptr->rd_rtprev;  /* Start at tail of list */
@@ -60,6 +59,7 @@ devcall	rdsread (
 	    bptr = bptr->rd_prev;
 	}
 
+	
 	/* Allocate a buffer and add read request to tail of req. queue */
 
 	bptr = rdsbufalloc(rdptr);	
@@ -91,6 +91,7 @@ devcall	rdsread (
 	if (bptr == (struct rdbuff *)SYSERR) {	
 		return SYSERR;
 	}
+	
 	memcpy(buff, bptr->rd_block, RD_BLKSIZ);
 	bptr->rd_refcnt--;
 	if (bptr->rd_refcnt <= 0) {
@@ -117,5 +118,6 @@ devcall	rdsread (
 			}
 		}
 	}
+
 	return OK;
 }

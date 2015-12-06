@@ -105,6 +105,14 @@ pid32	vcreate(
 
 	/* VCREATE code */
 	
+	/* create a new page directory for the process */
+	prptr->pd = getpdir();
+	if(prptr->pd == NULL) {
+		restore(mask);
+		return SYSERR;
+	
+	}
+	
 	/* get backing store */
 	bsd_t bsid= allocate_bs(hsize);
 	if(bsid == SYSERR) {
@@ -125,9 +133,12 @@ pid32	vcreate(
 		return SYSERR;
 	}
 
-	kprintf("\nPID %d BS %d allocated.", pid, bsid);
+	kprintf("\nPID %d BS %d allocated for process PID %d .", currpid, bsid, pid);
 	/* initiliaze virtual memory heap
-	* first item maps to the 1st page in the backing store */
+	* first item maps to the 1st page in the backing store 
+	* TODO check whether this is correct since we may cause page fault in context of the
+	* calling process :-O
+	* */
 	struct memblk *memptr = &vmemlist[pid];
 	memptr->mnext = (struct memblk *) PNO2VADDR(prptr->vpno);
 	memptr->mlength = hsize * NBPG;

@@ -42,6 +42,7 @@ syscall read_bs (char *dst, bsd_t bs_id, uint32 page)
 	 * FIXME : Check id read on RDISK takes blocks from 0 ...
 	 */
 	rd_blk = (bs_id * RD_PAGES_PER_BS + page)*8;
+	//kprintf("\nPID %d READBS dst : 0x%08x \r\n", currpid, dst);
 
 	for(i=0; i< 8; i++){
 		memset(buf, NULLCH, RD_BLKSIZ);
@@ -51,6 +52,8 @@ syscall read_bs (char *dst, bsd_t bs_id, uint32 page)
 		else{
 			memcpy((char *)(dst+i*RD_BLKSIZ), (char *)buf, RD_BLKSIZ);
 		}
+		//kprintf("\nPID %d READBS %d : \r\n", currpid, i);
+
 	}
 
 	return OK;

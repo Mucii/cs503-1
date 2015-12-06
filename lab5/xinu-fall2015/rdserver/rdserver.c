@@ -217,6 +217,7 @@ int	main (int argc, char *argv[])
 			break;
 
 		case RD_MSG_RREQ:
+			printf("Got an read request\n");
 			rdread(	  (struct rd_msg_rreq *)mptr,
 				  (struct rd_msg_rres *)rptr );
 			break;
