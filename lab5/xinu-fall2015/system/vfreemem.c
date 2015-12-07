@@ -20,9 +20,11 @@ syscall	vfreemem(
 
 	mask = disable();
 
+	struct procent *prptr = &proctab[currpid];
+
 	// TODO confirm these bounds
-	void *minaddr = (void *) (4096 * NBPG);
-	void *maxaddr = (void *) ((4096 + proctab[currpid].hsize) * NBPG);
+	void *minaddr = (void *) PNO2VADDR(prptr->vpno);
+	void *maxaddr = (void *) PNO2VADDR(prptr->vpno + prptr->hsize);
 
 	if ((nbytes == 0) || ((uint32) blkaddr < (uint32) minaddr)
 			  || ((uint32) blkaddr > (uint32) maxaddr)) {

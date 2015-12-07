@@ -100,7 +100,15 @@ syscall isroutine() {
 	pt[pti].pt_pres  = 1;
 	pt[pti].pt_write = 1;
 	pt[pti].pt_avail = 1;
-	
+	pt[pti].pt_user	= 0;
+	pt[pti].pt_pwt	= 0;
+	pt[pti].pt_pcd 	= 0;
+	pt[pti].pt_acc 	= 0;
+	pt[pti].pt_dirty = 0;
+	pt[pti].pt_mbz = 0;
+	pt[pti].pt_global = 0;
+	pt[pti].pt_avail = 0;
+
 
 	/* read from backing store */
 	//kprintf("\nPID %d ISR: Reached[1] bsid %d offset %d", currpid, bs.bsid, bs.offset);

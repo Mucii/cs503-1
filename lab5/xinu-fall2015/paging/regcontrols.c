@@ -64,8 +64,9 @@ void writecr3(unsigned long n) {
 
 void enablepaging() {
 
+	// write to PG bit
 	unsigned long temp = readcr0();
-	temp |= (0x1 << 31) | 0x1;
+	temp |= (0x1 << 31);
 	writecr0(temp);
 
 }

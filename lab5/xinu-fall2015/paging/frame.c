@@ -2,7 +2,9 @@
 
 frame_t frametab[NFRAMES];
 
-frame_t *fifohead;
+frame_t *head;
+
+unsigned long temp;
 
 /* decrement reference count if page table and remove if free */
 
@@ -78,80 +80,19 @@ int invalidate(frame_t *frame) {
 			if(frame->pid == currpid) {
 				// flush TLB
 				// TODO check whether to replace with 'invlpg' 
-				setPDBR(VADDR2PNO(pd));
+				// setPDBR(VADDR2PNO(pd));
+				temp = frame->vpagenum;
+				asm("invlpg temp");
 			}
 		} else {
 
 			kprintf("\nPID %d INVL Page entry not found for the address", currpid);
-
 		}
 	}
 
 	return dirty;
 }
 
-
-int isdirty(frame_t *frame) {
-
-	/* no checks - internal function */
-	pd_t *pd;
-	pt_t *pt;
-	int dirty = 0, i, j;
-
-
-	if(isbadpid(frame->pid)) return dirty;
-	
-	pd = proctab[frame->pid].pd;
-	uint32 addr = FRAME2ADDR(frame->fid);
-	
-	for(i = 4; i < NENTRIES; i++) {
-		
-		if(pd[i].pd_pres) {
-
-			pt = (pt_t *) PNO2VADDR(pd[i].pd_base);
-
-			// search page in the page table
-			for(j = 0; j < NENTRIES; j++) {
-
-				if(pt[j].pt_pres && addr == pt[j].pt_base) {
-					
-					// found page entry
-					dirty = pt[j].pt_dirty;
-
-					// zero out the page
-					pt[j].pt_pres 	= 0;
-					pt[j].pt_write	= 0;
-					pt[j].pt_user	= 0;
-					pt[j].pt_pwt	= 0;
-					pt[j].pt_pcd 	= 0;
-					pt[j].pt_acc 	= 0;
-					pt[j].pt_dirty 	= 0;
-					pt[j].pt_mbz 	= 0;
-					pt[j].pt_global = 0;
-					pt[j].pt_avail 	= 0;
-					pt[j].pt_base 	= 0;
-					
-					// decrease reference count of corresponding PT
-					frame_t *fr = ADDR2FRPTR(pt);
-					decrementref(fr);
-
-					// this frame might get freed as a result
-					// if freed pd needs to be updated
-					if(fr->status == FRAME_FREE)
-						pd[i].pd_pres = 0;
-					if(frame->pid == currpid) {
-						// flush TLB
-						// TODO check whether to replace with 'invlpg' 
-						setPDBR(VADDR2PNO(pd));
-			}
-					return dirty;
-				}
-			}
-		}
-	}
-
-	return dirty;
-}
 
 // remove all frames in the list which have status = FRAME_FREE
 void cleanupfifo() {
@@ -159,13 +100,13 @@ void cleanupfifo() {
 	frame_t *cur, *prev;
 
 	prev = NULL;
-	cur = fifohead;
+	cur = head;
 	
 	while(cur != NULL) {
 		if(cur->status == FRAME_FREE) {
 			
-			if(cur == fifohead) {
-				fifohead = fifohead->next;
+			if(cur == head) {
+				head = head->next;
 				
 			} else {
 				prev->next = cur->next;
@@ -223,8 +164,6 @@ int freeframe(frame_t *frame) {
 	frame->type 	= FRAME_FREE;
 	frame->numref 	= 0;
 	frame->dirty 	= 0;
-	frame->bsid	= -1;
-	frame->bspagenum= 0;
 	frame->pid	= -1;
 	frame->vpagenum	= 0;
 
@@ -240,7 +179,7 @@ frame_t *fiforeplace() {
 	frame_t *prev, *cur;
 	
 	prev = NULL;
-	cur = fifohead;
+	cur = head;
 
 	// TODO check implementation
 	while(cur) {
@@ -289,17 +228,15 @@ frame_t *getframe() {
 	frame->status 	= FRAME_USED;
 	frame->numref 	= 0;
 	frame->dirty 	= 0;
-	frame->bsid	= -1;
-	frame->bspagenum= 0;
 	frame->pid	= currpid;
 	frame->vpagenum	= 0;
 	frame->next	= NULL;
 
 	// update fifo list
-	if(fifohead == NULL) {
-		fifohead  = frame;
+	if(head == NULL) {
+		head  = frame;
 	} else {
-		iter = fifohead;
+		iter = head;
 		while(iter->next != NULL)
 			iter = iter->next;
 		iter->next = frame;
@@ -314,7 +251,7 @@ int frameinit() {
 
 	int i;
 	
-	fifohead = NULL;
+	head = NULL;
 	for(i = 0; i < NFRAMES; i++) {
 
 		frametab[i].fid = i;
@@ -325,8 +262,6 @@ int frameinit() {
 		frametab[i].next = NULL;
 		frametab[i].pid = -1;
 		frametab[i].vpagenum = 0;
-		frametab[i].bsid = -1;
-		frametab[i].bspagenum = 0;
 	}
 	return OK;
 }
@@ -352,14 +287,7 @@ syscall cleanslate() {
 	}	
 
 	// remove all backing store mappings and release them
-	for(i = 0; i < MAX_BS_ENTRIES; i++) {
-
-		if(bsmap[i].allocated == TRUE && bsmap[i].pid == currpid) {
-			
-			deallocate_bs(i);
-			remove_bsmapping(i);
-		}
-	}
+	remove_bsmappings(currpid);	
 	
 	// remove the page directory and page table information
 	freepdir(ptr->pd);	

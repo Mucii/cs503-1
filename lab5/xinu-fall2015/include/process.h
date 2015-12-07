@@ -58,7 +58,6 @@ struct procent {		/* Entry in the process table		*/
 	 * added for lab5
 	 */
 	pd_t *pd;		/* pointer to page table directpory	*/
-	bsd_t bsid;		/* backing store for a process		*/
 	uint32 hsize;		/* number for pages in virtual heap	*/
 	uint32 vpno;		/* starting virtual page no 		*/
 	byte bsstart;		/* whether 1st BS page is written	*/

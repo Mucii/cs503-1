@@ -43,7 +43,7 @@ typedef struct {
 #define VPAGE0		4096	/* starting virtual page no of a process	*/
 
 #ifndef NFRAMES
-#define NFRAMES		20	/* number of frames 3072	*/
+#define NFRAMES		30	/* number of frames 3072	*/
 #endif
 
 #define MAP_SHARED 1
@@ -93,8 +93,6 @@ typedef struct _frame {
 	struct _frame 	*next;		/* fifo: next frame allocated */
 	pid32		pid;		/* process whos page is mapped */
 	uint32		vpagenum;	/* virtual page num */
-	bsd_t		bsid;		/* id of backing store */
-	uint32		bspagenum;	/* page num within backing store */
 } frame_t;
 
 extern frame_t frametab[NFRAMES];
@@ -129,12 +127,13 @@ typedef struct _bsoffset {
 } bsoff_t;
 
 extern bsmap_t bsmap[MAX_BS_ENTRIES];
+extern uint32 numfreebs;
 
 void getbsmapping(pid32 pid, uint32 vpageno, bsoff_t *bsoff);
 int init_bsmap();
 int remove_bsmapping(bsd_t bsid);
 int add_bsmapping(bsd_t bsid, pid32 pid, uint32 vpageno, uint32 npages);
-
+int remove_bsmappings(pid32 pid);
 
 
 /* paging register control functions */

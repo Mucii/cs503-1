@@ -113,31 +113,56 @@ pid32	vcreate(
 	
 	}
 	
-	/* get backing store */
-	bsd_t bsid= allocate_bs(hsize);
-	if(bsid == SYSERR) {
-		kprintf("\nBacking store cannot be allocated..");
+	/* check if hsize is more than max allowed */
+	if(hsize > numfreebs * MAX_PAGES_PER_BS) {
+		kprintf("\nCannot allocated %d heap memory. Aborting!!");
 		restore(mask);
 		return SYSERR;
 	}
 
 	/* update process control block */
-	prptr->bsid  = bsid;
+	prptr->vpno = VPAGE0;
 	prptr->hsize = hsize;
-	prptr->vpno  = VPAGE0; 
 	prptr->bsstart = 1;
-	/* Add mapping between this store and process */
-	if(add_bsmapping(bsid, pid, prptr->vpno, hsize) == SYSERR) {
-		kprintf("\nBacking store cannot be mapped..");
-		restore(mask);
-		return SYSERR;
+	
+	uint32 off = 0;
+	/* get backing stores */	
+	while (hsize > 0) {
+		
+		uint32 size;
+		if(hsize > 200) {
+			size = 200;
+		} else {
+			size = hsize;
+		}
+		
+		hsize -= size;
+		bsd_t bsid= allocate_bs(size);
+		
+		if(bsid == SYSERR) {
+			kprintf("\nBacking store cannot be allocated..");
+			
+			// remove all allocated bs
+			remove_bsmappings(pid);
+			restore(mask);
+			return SYSERR;
+		}
+		/* Add mapping between this store and process */
+		if(add_bsmapping(bsid, pid, prptr->vpno + off, size) == SYSERR) {
+			kprintf("\nBacking store cannot be mapped..");
+			// remove all allocated bs
+			remove_bsmappings(pid);
+			restore(mask);
+			return SYSERR;
+		}
+		off += size;
+		kprintf("\nPID %d BS %d allocated for process PID %d remaining heap %d.", currpid, bsid, pid, hsize);
 	}
 
-	kprintf("\nPID %d BS %d allocated for process PID %d .", currpid, bsid, pid);
+	
 	/* initiliaze virtual memory heap
 	* first item maps to the 1st page in the backing store 
-	* TODO check whether this is correct since we may cause page fault in context of the
-	* calling process :-O
+	* it is initialized in first call to vgetmem
 	* */
 	struct memblk *memptr = &vmemlist[pid];
 	memptr->mnext = (struct memblk *) PNO2VADDR(prptr->vpno);

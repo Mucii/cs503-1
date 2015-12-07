@@ -155,7 +155,6 @@ static	void	sysinit()
 		/* added for LAB5 
 		 * ayush edit */
 		prptr->pd = NULL;
-		prptr->bsid = -1;
 		prptr->hsize = 0;
 		prptr->vpno = -1;
 		prptr->bsstart = 0;

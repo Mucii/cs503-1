@@ -1,5 +1,14 @@
 #include <xinu.h>
 
+/* All the pages related stuff
+ * globaptinit() - 	initiliaze global page tables
+ * getpdir() - 		get page directory and initialize it
+ * freepdir() - 	free all page tables and free the page directory
+ * geptable() - 	get page table and initialize it
+ * freeptable() - 	free the page table
+ */
+
+
 #define DEVMEM 576
 
 
