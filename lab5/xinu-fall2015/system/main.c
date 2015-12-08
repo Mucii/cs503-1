@@ -42,8 +42,8 @@ void proc1() {
 	
 	vfreemem(buf, 25*NBPG);
 	vfreemem(duf, 40*NBPG);
-
-	kprintf("\nPID %d Numfaults : %d", currpid, get_faults);
+	
+	kprintf("\nPID %d Numfaults : %d", currpid, get_faults());
 	
 }
 
@@ -51,39 +51,39 @@ void proc2() {
 
 	int i;
 	kprintf("\nPID %s Hey I am fine wat abt u!!", proctab[currpid].prname);
-	char *buf = vgetmem(20*NBPG);
 
-	char out1[40], out2[40];
+	int size = 10;
+	char out1[size], out2[size];
 
-	for(i = 0; i < 20*NBPG; i++)
-		buf[i] = 'a';
-
-	char *duf = vgetmem(40 * NBPG);
-	for(i = 0; i < 40*NBPG; i+= NBPG) {
-		out1[i / NBPG] = duf[i];
+	char *duf = vgetmem(size * NBPG);
+	for(i = 0; i < size*NBPG; i+= NBPG) {
 		duf[i] = 'b';
+		out1[i / NBPG] = duf[i];
+
 
 	}
 
 
-	for(i = 0; i < 40*NBPG; i+= NBPG) {
-		out2[i / NBPG] = duf[i];
+	for(i = 0; i < size*NBPG; i+= NBPG) {
 		duf[i] = 'z';
+		out2[i / NBPG] = duf[i];
+
 	}
-	
+
+	vfreemem(duf, size * NBPG);
 	kprintf("\n\n===========================================\n");
-	for(i = 0; i < 40; i++)
+	for(i = 0; i < size; i++)
 		kprintf("%c ", out1[i]);
 	
 	kprintf("\n=============================================\n");	
 
 	kprintf("\n\n===========================================\n");
-	for(i = 0; i < 40; i++)
+	for(i = 0; i < size; i++)
 		kprintf("%c ", out2[i]);
 	
 	kprintf("\n=============================================\n");	
 
-	kprintf("\n================PID %d Numfaults : %d===============", currpid, get_faults);
+	kprintf("\n================PID %d Numfaults : %d===============", currpid, get_faults());
 }
 
 void test_without_virtual() {
@@ -97,10 +97,10 @@ void test_virtual() {
 	//resume (vcreate(proc1, INITSTK, 650, INITPRIO, "VProc1", 0,  NULL));
 	
 	//sleepms(50);
-	resume (vcreate(proc1, INITSTK, 10, INITPRIO, "VProc2", 0,  NULL));
+	//resume (vcreate(proc1, INITSTK, 200, INITPRIO, "VProc2", 0,  NULL));
 
 	//sleepms(50);
-	resume (vcreate(proc2, INITSTK, 100, INITPRIO, "VProc3", 0,  NULL));
+	resume (vcreate(proc2, INITSTK, 500, INITPRIO, "VProc3", 0,  NULL));
 
 }
 

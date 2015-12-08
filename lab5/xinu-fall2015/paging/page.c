@@ -15,6 +15,7 @@
 pt_t *globalpt[4] = {NULL, NULL, NULL, NULL};
 pt_t *devpt = NULL;
 
+
 int globalptinit() {
 
 	int i, j;
@@ -124,7 +125,7 @@ pd_t *getpdir() {
 int freepdir(pd_t *pd) {
 	// TODO
 	
-	kprintf("\nPID %d Free Dir called", currpid);	
+	//kprintf("\nPID %d Free Dir called", currpid);	
 	int i;
 
 	for(i = 4; i < NENTRIES; i++) {
@@ -172,7 +173,7 @@ pt_t *getptable() {
 
 int freeptable(pt_t *pt) {
 
-	kprintf("\nPID %d, freepagetable called for PT @ 0x%08x", currpid, pt);	
+	//kprintf("\nPID %d, freepagetable called for PT @ 0x%08x", currpid, pt);	
 
 	freeframe(ADDR2FRPTR(pt));
 	return OK;

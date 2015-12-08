@@ -37,8 +37,8 @@ syscall isroutine() {
 	bs.bsid = -1; bs.offset = -1;
 	getbsmapping(currpid, VADDR2PNO (a), &bs);
 	if( isbadbsid(bs.bsid) ) {
-		kprintf("\nPID %d ISR: Invalid page address 0x%08x ecountered. bsid = %d", 
-				currpid, a, bs.bsid);
+		//kprintf("\nPID %d ISR: Invalid page address 0x%08x ecountered. bsid = %d", 
+		//		currpid, a, bs.bsid);
 		kill(currpid);
 		restore(mask);
 		return SYSERR;
@@ -89,8 +89,8 @@ syscall isroutine() {
 		restore(mask);
 		return SYSERR;
 	}
-	kprintf("\nPID %d ISR: frame no %d @ 0x%08x allocated ", 
-		currpid, frame->fid, FRAME2ADDR(frame->fid));
+	//kprintf("\nPID %d ISR: frame no %d @ 0x%08x allocated ", 
+		//currpid, frame->fid, FRAME2ADDR(frame->fid));
 
 	frame->type = FRAME_BS;
 	frame->vpagenum =  VADDR2PNO (a); 	/* faulted page num */
@@ -129,7 +129,7 @@ syscall isroutine() {
 	/* set the pdbr */
 	setPDBR(VADDR2PNO(pd));
 	
-	kprintf("\nPID %d ISR: All Done :) ", currpid);
+	//kprintf("\nPID %d ISR Complete! ", currpid);
 
 	restore(mask);
 	return OK;

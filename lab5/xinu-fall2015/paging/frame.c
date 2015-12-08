@@ -10,8 +10,8 @@ unsigned long temp;
 
 int decrementref(frame_t *frame) {
 
-	kprintf("\nPID %d DECR Frame %d type %d numref %d", 
-		currpid, frame->fid, frame->type, frame->numref);
+	//kprintf("\nPID %d DECR Frame %d type %d numref %d", 
+	//	currpid, frame->fid, frame->type, frame->numref);
 
 
 	if(frame->type != FRAME_PT)
@@ -30,8 +30,8 @@ int invalidate(frame_t *frame) {
 	pt_t *pt;
 	int dirty = 0, i, j;
 
-	kprintf("\nPID %d INVL Invalidate frame %d pid %d vpno %d", 
-		currpid, frame->fid, frame->pid, frame->vpagenum);
+	//kprintf("\nPID %d INVL Invalidate frame %d pid %d vpno %d", 
+	//	currpid, frame->fid, frame->pid, frame->vpagenum);
 
 	if(isbadpid(frame->pid)) return dirty;
 	
@@ -52,7 +52,7 @@ int invalidate(frame_t *frame) {
 			
 			
 			dirty = pt[j].pt_dirty;
-			kprintf("\nPID %d INVL Page entry found. Dirty : %d ", currpid, dirty);
+			//kprintf("\nPID %d INVL Page entry found. Dirty : %d ", currpid, dirty);
 			
 			// zero out the page table entry
 			pt[j].pt_pres 	= 0;
@@ -86,7 +86,7 @@ int invalidate(frame_t *frame) {
 			}
 		} else {
 
-			kprintf("\nPID %d INVL Page entry not found for the address", currpid);
+			//kprintf("\nPID %d INVL Page entry not found for the address", currpid);
 		}
 	}
 
@@ -112,7 +112,7 @@ void cleanupfifo() {
 				prev->next = cur->next;
 			}
 
-			kprintf("\nPID %d, Freed frame 0x%08x", currpid, FRAME2ADDR(cur->fid));
+			//kprintf("\nPID %d, Freed frame 0x%08x", currpid, FRAME2ADDR(cur->fid));
 			cur->next = NULL;
 			return;
 		} else {
@@ -132,17 +132,17 @@ int freeframe(frame_t *frame) {
 	if(frame == NULL)
 		return OK;
 
-	kprintf("\nPID %d, Free frame called for frame 0x%08x", currpid, FRAME2ADDR(frame->fid));
+	//kprintf("\nPID %d, Free frame called for frame 0x%08x", currpid, FRAME2ADDR(frame->fid));
 	
 	// write_back if a dirty frame mapped to backing store
 	if(frame->type == FRAME_BS && invalidate(frame)) {
 		
-		kprintf("\nPID %d, Frame @ 0x%08x was dirty", currpid, FRAME2ADDR(frame->fid));
+		//kprintf("\nPID %d, Frame @ 0x%08x was dirty", currpid, FRAME2ADDR(frame->fid));
 
 		bsoff_t bo;
 		getbsmapping(frame->pid, frame->vpagenum, &bo);
 		if(isbadbsid(bo.bsid)) {
-			kprintf("\nBS not found for the frame. Aborting!");
+			kprintf("\nPID %d BS not found for the frame %d  Aborting!", currpid, frame->fid);
 			kill(currpid);
 			return SYSERR;
 		}
@@ -151,7 +151,7 @@ int freeframe(frame_t *frame) {
 			return SYSERR;
 
 		}
-		kprintf("\nPID %d, Frame @ 0x%08x was written back to BS %d offset %d ", currpid, FRAME2ADDR(frame->fid), bo.bsid, bo.offset);
+		//kprintf("\nPID %d, Frame @ 0x%08x was written back to BS %d offset %d ", currpid, FRAME2ADDR(frame->fid), bo.bsid, bo.offset);
 
 	}
 	
@@ -204,7 +204,7 @@ frame_t *removeframe() {
 
 	int i = 0;
 	frame_t *frame;
-	kprintf("\nPID %d Get Frame called..", currpid);
+	//kprintf("\nPID %d Get Frame called..", currpid);
 	while(i < NFRAMES) {
 		frame = &frametab[i];
 		if(frame->status == FRAME_FREE)
@@ -241,7 +241,7 @@ frame_t *getframe() {
 			iter = iter->next;
 		iter->next = frame;
 	}
-	kprintf("\nPID %d, Allocated frame 0x%08x", currpid, FRAME2ADDR(frame->fid));
+	//kprintf("\nPID %d, Allocated frame 0x%08x", currpid, FRAME2ADDR(frame->fid));
 
 	return frame;
 
@@ -267,6 +267,21 @@ int frameinit() {
 }
 
 
+/* basically garbage collector 
+ * clean up frames */
+void garbagecollector() {
+
+	int i;
+	for(i = 0; i < NFRAMES; i++) {
+		
+		if(isbadpid(frametab[i].pid) && frametab[i].status != FRAME_FREE) {
+			kprintf("\nGarbage Collector : freeing frame %d ", i);
+			freeframe(&frametab[i]);
+		}
+	}	
+}
+
+/* clean up when a process is killed */
 syscall cleanslate() {
 
 	if(isbadpid(currpid)) 
@@ -274,7 +289,7 @@ syscall cleanslate() {
 
 	struct procent *ptr;
 	int i;
-	kprintf("\nPID %d Clean Slate Called ", currpid);
+	//kprintf("\nPID %d Clean Slate Called ", currpid);
 	ptr = &proctab[currpid];
 
 	// remove all frames which are mapped to current process
@@ -291,7 +306,7 @@ syscall cleanslate() {
 	
 	// remove the page directory and page table information
 	freepdir(ptr->pd);	
-	
+
 	return OK;	
 }
 

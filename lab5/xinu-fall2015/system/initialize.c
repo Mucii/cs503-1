@@ -227,7 +227,7 @@ static void initialize_paging()
 	setPDBR(VADDR2PNO(proctab[NULLPROC].pd));
 
 	/* Enable Paging */
-	kprintf("\nPaging Enabled");
+	//kprintf("\nPaging Enabled");
 
 	enablepaging();
 	return;

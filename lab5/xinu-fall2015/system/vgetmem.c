@@ -18,11 +18,11 @@ int startbs() {
 	if(prptr->bsstart == 0) return 0;
 	
 	prptr->bsstart = 0;
-	kprintf("\nPID %d, Writing to Vmemlist->next ", currpid);
+	//kprintf("\nPID %d, Writing to Vmemlist->next ", currpid);
 	struct memblk *memblock = (struct memblk *) (PNO2VADDR(prptr->vpno));
 	memblock->mnext = NULL;
 	memblock->mlength = prptr->hsize * NBPG;
-	kprintf("\nPID %d Vmemlist->next initialized", currpid);
+	//kprintf("\nPID %d Vmemlist->next initialized", currpid);
 
 	return OK;
 }

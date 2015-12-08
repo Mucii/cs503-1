@@ -115,7 +115,7 @@ pid32	vcreate(
 	
 	/* check if hsize is more than max allowed */
 	if(hsize > numfreebs * MAX_PAGES_PER_BS) {
-		kprintf("\nCannot allocated %d heap memory. Aborting!!");
+		kprintf("\nPID %d Cannot allocated %d heap memory for new process %d. Aborting!!", currpid, hsize, pid);
 		restore(mask);
 		return SYSERR;
 	}
@@ -130,8 +130,8 @@ pid32	vcreate(
 	while (hsize > 0) {
 		
 		uint32 size;
-		if(hsize > 200) {
-			size = 200;
+		if(hsize > MAX_PAGES_PER_BS) {
+			size = MAX_PAGES_PER_BS;
 		} else {
 			size = hsize;
 		}
@@ -156,7 +156,7 @@ pid32	vcreate(
 			return SYSERR;
 		}
 		off += size;
-		kprintf("\nPID %d BS %d allocated for process PID %d remaining heap %d.", currpid, bsid, pid, hsize);
+		//kprintf("\nPID %d BS %d allocated for process PID %d remaining heap %d.", currpid, bsid, pid, hsize);
 	}
 
 	

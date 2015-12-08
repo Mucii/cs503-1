@@ -70,12 +70,12 @@ void getbsmapping(pid32 pid, uint32 vpno, bsoff_t *bsoff) {
 	
 	int i;
 
-	kprintf("\nPID BSMP: pid %d vpno %d ", pid, vpno);
+	//kprintf("\nPID BSMP: pid %d vpno %d ", pid, vpno);
 	for(i = 0; i < MAX_BS_ENTRIES; i++) {
 		// check if map allocated to pid
 		if(bsmap[i].pid == pid && bsmap[i].allocated == TRUE) {
-			kprintf("\nPID %d BSMP: bs %d start %d end %d", 
-				currpid, i, bsmap[i].vpageno, bsmap[i].vpageno + bsmap[i].npages);
+			//kprintf("\nPID %d BSMP: bs %d start %d end %d", 
+				//currpid, i, bsmap[i].vpageno, bsmap[i].vpageno + bsmap[i].npages);
 			if(validbspage(i, vpno)) {
 				
 				bsoff->bsid = i;
